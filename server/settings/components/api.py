@@ -2,6 +2,7 @@ import tomllib
 from typing import Any, cast
 
 from dmr.openapi import OpenAPIConfig
+from dmr.openapi.objects import Tag
 from dmr.settings import Settings
 
 from server.settings.components import BASE_DIR, config
@@ -23,6 +24,14 @@ DMR_SETTINGS: Any = {
     Settings.openapi_config: OpenAPIConfig(
         title='sitdown-rest',
         version=_get_project_meta()['version'],
+        tags=[
+            Tag(name='auth', description='Token issuance'),
+            Tag(name='groups', description='Project group management'),
+            Tag(name='members', description='Project membership'),
+            Tag(name='meetings', description='Standup meeting events'),
+            Tag(name='entries', description='Per-member standup tabs inside a meeting'),
+            Tag(name='users', description='Organisation user directory'),
+        ],
     ),
     # Generate fake examples in OpenAPI:
     Settings.openapi_examples_seed: 1,

@@ -24,6 +24,7 @@ class TokenCreate(
 ):
     """POST /token — issue a new access/refresh token pair."""
 
+    @modify(tags=['auth'])
     def post(
         self,
         parsed_body: Body[TokenCreatePayload],
@@ -40,6 +41,7 @@ class TokenRefresh(
 ):
     """POST /token/refresh — exchange refresh token for a new pair."""
 
+    @modify(tags=['auth'])
     def post(
         self,
         parsed_body: Body[TokenRefreshPayload],
@@ -56,7 +58,7 @@ class UsersList(
 ):
     """GET /users — paginated organisation user directory (MANAGER only)."""
 
-    @modify(status_code=HTTPStatus.OK)
+    @modify(status_code=HTTPStatus.OK, tags=['users'])
     def get(self) -> PaginatedUsersPayload:
         """Return a paginated, searchable list of org users."""
         log.debug('users_list_called')

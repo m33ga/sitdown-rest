@@ -25,12 +25,13 @@ class MeetingsCollection(
 ):
     """GET /groups/{group_id}/meetings and POST /groups/{group_id}/meetings."""
 
+    @modify(tags=['meetings'])
     def get(self) -> PaginatedMeetingsPayload:
         """List meetings for a group (sorted by date descending)."""
         log.debug('meetings_list_called', group_id=self.kwargs.get('group_id'))
         raise NotImplementedError
 
-    @modify(status_code=HTTPStatus.CREATED)
+    @modify(status_code=HTTPStatus.CREATED, tags=['meetings'])
     def post(
         self,
         parsed_body: Body[MeetingCreatePayload],
@@ -47,6 +48,7 @@ class MeetingsDetail(
 ):
     """PATCH /meetings/{id} and DELETE /meetings/{id}."""
 
+    @modify(tags=['meetings'])
     def patch(
         self,
         parsed_body: Body[MeetingUpdatePayload],
@@ -55,7 +57,7 @@ class MeetingsDetail(
         log.debug('meetings_update_called', meeting_id=self.kwargs.get('id'))
         raise NotImplementedError
 
-    @modify(status_code=HTTPStatus.NO_CONTENT)
+    @modify(status_code=HTTPStatus.NO_CONTENT, tags=['meetings'])
     def delete(self) -> None:
         """Delete a meeting and all its MemberEntries (MANAGER only)."""
         log.debug('meetings_destroy_called', meeting_id=self.kwargs.get('id'))
@@ -69,6 +71,7 @@ class EntriesCollection(
 ):
     """GET /meetings/{id}/entries."""
 
+    @modify(tags=['entries'])
     def get(self) -> list[MemberEntryPayload]:
         """List all member entries for a meeting (ordered by updated_at desc)."""
         log.debug('entries_list_called', meeting_id=self.kwargs.get('id'))
@@ -82,6 +85,7 @@ class EntriesDetail(
 ):
     """PATCH /meetings/{id}/entries/{user_id}."""
 
+    @modify(tags=['entries'])
     def patch(
         self,
         parsed_body: Body[MemberEntryUpdatePayload],
