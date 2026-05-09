@@ -35,19 +35,16 @@ def _inject_django(container: punq.Container) -> None:
     )
 
 
-def _inject_main(container: punq.Container) -> None:
-    from server.apps.main.infra import mappers, repository
-    from server.apps.main.logic.usecases import blogpost_create, blogpost_get
+def _inject_users(container: punq.Container) -> None:
+    pass  # Populated in: JWT auth milestone
 
-    # Hacks to resolve annotations:
-    inject = _create_injector(container, locals())  # noqa: WPS421
 
-    # Things to register:
-    container.register(repository.BlogPostRepo)
-    container.register(mappers.BlogPostMapper)
+def _inject_groups(container: punq.Container) -> None:
+    pass  # Populated in: Groups milestone
 
-    container.register(inject(blogpost_create.CreateBlogPost))
-    container.register(inject(blogpost_get.GetBlogPost))
+
+def _inject_meetings(container: punq.Container) -> None:
+    pass  # Populated in: Meetings milestone
 
 
 def populate_dependencies(container: punq.Container) -> punq.Container:
@@ -55,5 +52,7 @@ def populate_dependencies(container: punq.Container) -> punq.Container:
     # Deps:
     _inject_django(container)
     # Apps:
-    _inject_main(container)
+    _inject_users(container)
+    _inject_groups(container)
+    _inject_meetings(container)
     return container
