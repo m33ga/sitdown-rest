@@ -3,6 +3,7 @@ from typing import Any, cast
 
 from dmr.openapi import OpenAPIConfig
 from dmr.openapi.objects import Tag
+from dmr.security.jwt.auth import JWTSyncAuth
 from dmr.settings import Settings
 
 from server.settings.components import BASE_DIR, config
@@ -35,6 +36,10 @@ DMR_SETTINGS: Any = {
     ),
     # Generate fake examples in OpenAPI:
     Settings.openapi_examples_seed: 1,
+    # Global JWT auth: every endpoint requires a valid Bearer token unless
+    # the endpoint or controller explicitly sets `auth=None` (e.g. the
+    # token-issuance and token-refresh endpoints).
+    Settings.auth: [JWTSyncAuth()],
 }
 
 

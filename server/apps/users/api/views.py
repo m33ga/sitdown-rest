@@ -29,6 +29,8 @@ class TokenCreate(
 ):
     """POST /token — issue a new access/refresh token pair."""
 
+    auth = None  # this endpoint mints tokens; cannot itself require one
+
     @modify(tags=['auth'], status_code=HTTPStatus.OK, validate_responses=False)
     def post(
         self,
@@ -56,6 +58,8 @@ class TokenRefresh(
     Controller[MsgspecSerializer],
 ):
     """POST /token/refresh — exchange refresh token for a new pair."""
+
+    auth = None  # refresh endpoint authenticates via the refresh token
 
     @modify(tags=['auth'], status_code=HTTPStatus.OK, validate_responses=False)
     def post(
