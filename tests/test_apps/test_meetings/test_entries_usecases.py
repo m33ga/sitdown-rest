@@ -8,7 +8,7 @@ import uuid
 
 import pytest
 
-from server.apps.groups.models import Group, ProjectMember
+from server.apps.groups.models import Group
 from server.apps.meetings.infra.mappers import MemberEntryMapper
 from server.apps.meetings.infra.repository import MeetingRepository
 from server.apps.meetings.logic.exceptions import (
