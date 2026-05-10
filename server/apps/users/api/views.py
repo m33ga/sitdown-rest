@@ -5,7 +5,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, final, override
 
 import structlog
-from dmr import Controller, ResponseSpec, modify
+from dmr import Body, Controller, ResponseSpec, modify
 from dmr.exceptions import NotAuthenticatedError
 from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.security.jwt.views import (
@@ -53,6 +53,18 @@ class TokenCreate(
             status_code=HTTPStatus.UNAUTHORIZED,
         ),
     )
+
+    # Re-decorate `post` so the OpenAPI schema groups this endpoint under
+    # the `auth` tag. dmr's parent `post` only sets `status_code=200` and
+    # would otherwise leave the operation untagged (Swagger's "default").
+    @modify(tags=['auth'], status_code=HTTPStatus.OK)
+    def post(
+        self,
+        parsed_body: Body[ObtainTokensPayload],
+    ) -> ObtainTokensResponse:
+        """Issue tokens (delegates to the inherited login flow)."""
+        log.debug('[FIX] token_create_post tags=auth')
+        return self.login(parsed_body)
 
     @override
     def convert_auth_payload(
@@ -120,6 +132,17 @@ class TokenRefresh(
             status_code=HTTPStatus.UNAUTHORIZED,
         ),
     )
+
+    # See TokenCreate.post — re-decorate so this endpoint is tagged `auth`
+    # in the generated OpenAPI document.
+    @modify(tags=['auth'], status_code=HTTPStatus.OK)
+    def post(
+        self,
+        parsed_body: Body[RefreshTokenPayload],
+    ) -> ObtainTokensResponse:
+        """Refresh tokens (delegates to the inherited refresh flow)."""
+        log.debug('[FIX] token_refresh_post tags=auth')
+        return self.refresh(parsed_body)
 
     @override
     def convert_refresh_payload(
