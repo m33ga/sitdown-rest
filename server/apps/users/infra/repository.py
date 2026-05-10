@@ -50,7 +50,7 @@ class UserRepository:
         qs = qs.order_by('username')
         total = qs.count()
         offset = (page - 1) * per_page
-        results = list(qs[offset:offset + per_page])
+        results = list(qs[offset : offset + per_page])
         log.debug(
             'user_repo_list_done',
             total=total,

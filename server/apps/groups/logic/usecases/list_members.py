@@ -45,9 +45,8 @@ class ListMembersUseCase:
         if group is None:
             log.debug('list_members_group_not_found', group_id=str(group_id))
             raise GroupNotFoundError
-        if (
-            user.role != 'MANAGER'
-            and not self._group_repo.is_member(user, group)
+        if user.role != 'MANAGER' and not self._group_repo.is_member(
+            user, group
         ):
             log.debug(
                 'list_members_access_denied',
@@ -57,8 +56,7 @@ class ListMembersUseCase:
             raise PermissionDeniedError
         members = self._group_repo.list_members(group)
         results = [
-            self._project_member_mapper.to_payload(member)
-            for member in members
+            self._project_member_mapper.to_payload(member) for member in members
         ]
         log.debug('list_members_done', count=len(results))
         return results

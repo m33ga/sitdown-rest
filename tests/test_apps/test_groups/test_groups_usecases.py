@@ -186,10 +186,13 @@ def test_pin_group_idempotent() -> None:
     group = Group.objects.create(name='g')
     _pin_uc()(user=user, group_id=group.id)
     _pin_uc()(user=user, group_id=group.id)
-    assert UserPinnedGroup.objects.filter(
-        user=user,
-        group=group,
-    ).count() == 1
+    assert (
+        UserPinnedGroup.objects.filter(
+            user=user,
+            group=group,
+        ).count()
+        == 1
+    )
 
 
 @pytest.mark.django_db
@@ -248,9 +251,12 @@ def test_unpin_group_access_denied_for_non_member() -> None:
 def test_repository_get_by_id_returns_none_when_missing() -> None:
     """``GroupRepository.get_by_id`` returns None for unknown IDs."""
     repo = GroupRepository()
-    assert repo.get_by_id(
-        uuid.UUID('00000000-0000-0000-0000-000000000444'),
-    ) is None
+    assert (
+        repo.get_by_id(
+            uuid.UUID('00000000-0000-0000-0000-000000000444'),
+        )
+        is None
+    )
 
 
 @pytest.mark.django_db

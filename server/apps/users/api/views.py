@@ -55,7 +55,8 @@ def _mint_enriched_token(
         MsgspecSerializer,
         ObtainTokensPayload,
         ObtainTokensResponse,
-    ] | RefreshTokenSyncController[
+    ]
+    | RefreshTokenSyncController[
         MsgspecSerializer,
         RefreshTokenPayload,
         ObtainTokensResponse,

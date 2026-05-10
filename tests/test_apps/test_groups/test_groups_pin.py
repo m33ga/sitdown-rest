@@ -64,10 +64,13 @@ def test_groups_pin_idempotent(manager: User) -> None:
     UserPinnedGroup.objects.create(user=manager, group=group)
     response = _put(Client(), group.id, user=manager)
     assert response.status_code == 204
-    assert UserPinnedGroup.objects.filter(
-        user=manager,
-        group=group,
-    ).count() == 1
+    assert (
+        UserPinnedGroup.objects.filter(
+            user=manager,
+            group=group,
+        ).count()
+        == 1
+    )
 
 
 @pytest.mark.django_db

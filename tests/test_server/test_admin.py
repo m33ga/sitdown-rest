@@ -24,7 +24,8 @@ def _strip_debug_toolbar_middleware(settings: LazySettings) -> None:
     keeps the admin tests environment-agnostic.
     """
     settings.MIDDLEWARE = tuple(
-        middleware for middleware in settings.MIDDLEWARE
+        middleware
+        for middleware in settings.MIDDLEWARE
         if 'debug_toolbar' not in middleware
     )
 

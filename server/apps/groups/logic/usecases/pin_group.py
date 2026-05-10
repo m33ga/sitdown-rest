@@ -40,9 +40,8 @@ class PinGroupUseCase:
                 group_id=str(group_id),
             )
             raise GroupNotFoundError
-        if (
-            user.role != 'MANAGER'
-            and not self._group_repo.is_member(user, group)
+        if user.role != 'MANAGER' and not self._group_repo.is_member(
+            user, group
         ):
             log.debug(
                 'pin_group_access_denied',

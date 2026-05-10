@@ -178,9 +178,9 @@ def test_repository_create_with_entries_excludes_guests() -> None:
     )
 
     user_ids = set(
-        MemberEntry.objects
-        .filter(meeting=meeting)
-        .values_list('user_id', flat=True),
+        MemberEntry.objects.filter(meeting=meeting).values_list(
+            'user_id', flat=True
+        ),
     )
     assert user_ids == {member_user.id}
 
