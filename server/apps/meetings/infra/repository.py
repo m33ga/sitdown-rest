@@ -264,3 +264,113 @@ class MeetingRepository:
         )
         meeting.delete()
         log.debug('meeting_repo_delete_done')
+
+    def list_entries_for_meeting(
+        self,
+        meeting: Meeting,
+    ) -> list[MemberEntry]:
+        """Return all entries for ``meeting`` ordered by ``-updated_at``.
+
+        Uses ``select_related('user')`` so the mapper can read user
+        attributes without N+1 queries.
+        """
+        log.debug(
+            'meeting_repo_list_entries_called',
+            meeting_id=str(meeting.id),
+        )
+        results = list(
+            MemberEntry.objects
+            .filter(meeting=meeting)
+            .select_related('user')
+            .order_by('-updated_at'),
+        )
+        log.debug(
+            'meeting_repo_list_entries_done',
+            meeting_id=str(meeting.id),
+            count=len(results),
+        )
+        return results
+
+    def get_entry(
+        self,
+        meeting: Meeting,
+        target_user_id: UUID,
+    ) -> MemberEntry | None:
+        """Return the entry for ``(meeting, target_user_id)`` or ``None``."""
+        log.debug(
+            'meeting_repo_get_entry_called',
+            meeting_id=str(meeting.id),
+            target_user_id=str(target_user_id),
+        )
+        entry = (
+            MemberEntry.objects
+            .filter(meeting=meeting, user_id=target_user_id)
+            .select_related('user')
+            .first()
+        )
+        if entry is None:
+            log.debug(
+                'meeting_repo_get_entry_not_found',
+                meeting_id=str(meeting.id),
+                target_user_id=str(target_user_id),
+            )
+            return None
+        log.debug(
+            'meeting_repo_get_entry_found',
+            meeting_id=str(meeting.id),
+            target_user_id=str(target_user_id),
+        )
+        return entry
+
+    def update_entry(
+        self,
+        entry: MemberEntry,
+        *,
+        promised: str | None,
+        done: str | None,
+        will_do: str | None,
+        discussion: str | None,
+        notes: str | None,
+    ) -> MemberEntry:
+        """Apply partial updates to an entry; no-op when all fields are None.
+
+        Skips ``.save()`` entirely on a no-op so the ``auto_now=True``
+        timestamp on ``updated_at`` doesn't bump for empty PATCHes.
+        """
+        log.debug(
+            'meeting_repo_update_entry_called',
+            entry_id=str(entry.id),
+        )
+        update_fields: list[str] = []
+        if promised is not None:
+            entry.promised = promised
+            update_fields.append('promised')
+        if done is not None:
+            entry.done = done
+            update_fields.append('done')
+        if will_do is not None:
+            entry.will_do = will_do
+            update_fields.append('will_do')
+        if discussion is not None:
+            entry.discussion = discussion
+            update_fields.append('discussion')
+        if notes is not None:
+            entry.notes = notes
+            update_fields.append('notes')
+        if not update_fields:
+            log.debug(
+                'meeting_repo_update_entry_noop',
+                entry_id=str(entry.id),
+            )
+            return entry
+        # Bump updated_at alongside the changed fields. auto_now only
+        # fires when the field is explicitly listed in update_fields
+        # (Django docs).
+        update_fields.append('updated_at')
+        entry.save(update_fields=update_fields)
+        log.debug(
+            'meeting_repo_update_entry_done',
+            entry_id=str(entry.id),
+            fields=update_fields,
+        )
+        return entry
