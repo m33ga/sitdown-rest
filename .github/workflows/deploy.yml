@@ -1,0 +1,142 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Two simultaneous deploys queue rather than race; do not cancel the
+# in-flight one because it may be mid-pull on the droplet.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write  # required to push images to GHCR
+
+env:
+  IMAGE_NAME: ghcr.io/m33ga/sitdown-rest
+  CADDY_IMAGE_NAME: ghcr.io/m33ga/sitdown-rest-caddy
+
+jobs:
+  test:
+    name: Tests + lint + type-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Hydrate config/.env from CI fixture
+        run: cp config/.env.ci config/.env
+
+      - name: Build dev image (with BuildKit cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/django/Dockerfile
+          target: development_build
+          load: true
+          tags: sitdown-rest:dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            DJANGO_ENV=development
+
+      - name: Run full CI script (ruff, mypy, pytest, etc.)
+        run: |
+          docker compose run --user=root --rm web ./docker/django/ci.sh
+
+  build-and-push:
+    name: Build + push images to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: test
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tag
+        id: meta
+        run: echo "image_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/django/Dockerfile
+          target: production_build
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            DJANGO_ENV=production
+
+      - name: Build and push caddy image
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/caddy
+          file: docker/caddy/Dockerfile
+          push: true
+          tags: |
+            ${{ env.CADDY_IMAGE_NAME }}:latest
+            ${{ env.CADDY_IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
+          cache-from: type=gha,scope=caddy
+          cache-to: type=gha,mode=max,scope=caddy
+
+  deploy:
+    name: SSH deploy to droplet
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build-and-push
+    environment: production  # surfaces in GitHub UI; no secret gating
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy compose + caddy assets to droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.DROPLET_HOST }}
+          username: ${{ vars.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          # Place files inside /srv/sitdown-rest on the droplet, mirroring
+          # the repo layout the deploy script expects.
+          target: /srv/sitdown-rest
+          source: |
+            docker-compose.deploy.yml
+            docker/caddy/Caddyfile
+            scripts/deploy.sh
+
+      - name: Run deploy script over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.DROPLET_HOST }}
+          username: ${{ vars.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: APP_ENV,IMAGE_TAG
+          script: |
+            chmod +x /srv/sitdown-rest/scripts/deploy.sh
+            bash /srv/sitdown-rest/scripts/deploy.sh
+        env:
+          APP_ENV: ${{ vars.APP_ENV }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
