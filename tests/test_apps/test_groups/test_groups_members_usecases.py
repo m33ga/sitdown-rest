@@ -231,7 +231,7 @@ def test_repository_add_member_returns_with_user_attached() -> None:
 
 @pytest.mark.django_db
 def test_mapper_uses_user_id_in_payload() -> None:
-    """ProjectMemberMapper writes user_id (not membership_id) in the id field."""
+    """Mapper puts user_id (not membership row id) in the payload id."""
     group = Group.objects.create(name='g')
     target = make_user('alice', role='MEMBER')
     member = ProjectMember.objects.create(group=group, user=target)
