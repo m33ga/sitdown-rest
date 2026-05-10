@@ -26,6 +26,15 @@ CONTENT_SECURITY_POLICY: _ContentSecurityPolicy = {
         '/docs/swagger/',
         '/docs/scalar/',
         '/docs/redoc/',
+        # django-unfold's admin UI relies on Alpine.js (needs ``unsafe-eval``
+        # to evaluate ``x-data`` / ``x-bind`` / ``x-show`` expressions) and
+        # inline styles applied at runtime by Alpine and htmx. The admin is
+        # staff-authenticated and ships trusted bundled JS, so we exclude
+        # the prefix from CSP enforcement rather than weakening the global
+        # script-src / style-src directives. Without this, the modal
+        # overlay's ``x-show="openModal"`` cannot evaluate and the panel
+        # renders opaque on top of the login form.
+        '/admin/',
     ],
     'DIRECTIVES': {
         'default-src': [NONE],
