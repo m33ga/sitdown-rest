@@ -9,7 +9,7 @@ from django.test import Client
 
 from server.apps.users.models import User
 
-TOKEN_URL = '/api/v1/token/'
+TOKEN_URL = '/api/v1/token/'  # noqa: S105
 
 
 def _make_user(
@@ -39,7 +39,7 @@ def _post(client: Client, payload: dict) -> object:
 @pytest.mark.django_db
 def test_token_create_success() -> None:
     """Valid credentials return 200 with access_token and refresh_token."""
-    _make_user('alice', 'correcthorsebatterystaple')  # noqa: S106
+    _make_user('alice', 'correcthorsebatterystaple')
     client = Client()
     response = _post(
         client,
@@ -56,7 +56,7 @@ def test_token_create_success() -> None:
 @pytest.mark.django_db
 def test_token_create_wrong_password() -> None:
     """Wrong password returns 401 with INVALID_CREDENTIALS error code."""
-    _make_user('bob', 'correctpassword')  # noqa: S106
+    _make_user('bob', 'correctpassword')
     client = Client()
     response = _post(
         client,
@@ -84,7 +84,7 @@ def test_token_create_unknown_user() -> None:
 @pytest.mark.django_db
 def test_token_create_access_token_is_jwt() -> None:
     """The access_token field is a valid HS256 JWT."""
-    _make_user('carol', 'secret123')  # noqa: S106
+    _make_user('carol', 'secret123')
     client = Client()
     response = _post(
         client,
@@ -105,7 +105,7 @@ def test_token_create_access_token_is_jwt() -> None:
 @pytest.mark.django_db
 def test_token_create_access_and_refresh_have_distinct_types() -> None:
     """Access token has `extras.type='access'`; refresh has `'refresh'`."""
-    _make_user('dave', 'secret456')  # noqa: S106
+    _make_user('dave', 'secret456')
     client = Client()
     response = _post(
         client,

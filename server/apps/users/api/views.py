@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from http import HTTPStatus
-from typing import TYPE_CHECKING, final
+from typing import TYPE_CHECKING, final, override
 
 import structlog
 from dmr import Controller, ResponseSpec, modify
@@ -11,10 +11,8 @@ from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.security.jwt.views import (
     ObtainTokensPayload,
     ObtainTokensSyncController,
-    RefreshTokenPayload,
     RefreshTokenSyncController,
 )
-from typing_extensions import override
 
 from server.apps.users.logic.value_objects import (
     ErrorResponse,
@@ -78,9 +76,9 @@ class TokenCreate(
             user_id=str(self.request.user.pk),
         )
         now = dt.datetime.now(dt.UTC)
-        access_token = self.create_jwt_token(token_type='access')
+        access_token = self.create_jwt_token(token_type='access')  # noqa: S106
         refresh_token = self.create_jwt_token(
-            token_type='refresh',
+            token_type='refresh',  # noqa: S106
             expiration=now + self.jwt_refresh_expiration,
         )
         return TokenResponse(
@@ -95,7 +93,7 @@ class TokenCreate(
         controller: Controller[MsgspecSerializer],
         exc: Exception,
     ) -> HttpResponse:
-        """Translate dmr's NotAuthenticatedError into our ErrorResponse shape."""
+        """Translate NotAuthenticatedError into our ErrorResponse shape."""
         if isinstance(exc, NotAuthenticatedError):
             log.debug('token_create_invalid_credentials')
             return controller.to_error(
@@ -105,7 +103,7 @@ class TokenCreate(
                 ),
                 status_code=HTTPStatus.UNAUTHORIZED,
             )
-        raise
+        raise exc  # pragma: no cover
 
 
 @final
@@ -132,10 +130,10 @@ class TokenRefresh(
     def convert_refresh_payload(
         self,
         payload: TokenRefreshPayload,
-    ) -> RefreshTokenPayload:
+    ) -> str:
         """Extract the refresh token string from the parsed body."""
         log.debug('token_refresh_convert_payload')
-        return {'refresh_token': payload.refresh_token}
+        return payload.refresh_token
 
     @override
     def make_api_response(self) -> TokenRefreshResponse:
@@ -145,9 +143,9 @@ class TokenRefresh(
             user_id=str(self.request.user.pk),
         )
         now = dt.datetime.now(dt.UTC)
-        access_token = self.create_jwt_token(token_type='access')
+        access_token = self.create_jwt_token(token_type='access')  # noqa: S106
         refresh_token = self.create_jwt_token(
-            token_type='refresh',
+            token_type='refresh',  # noqa: S106
             expiration=now + self.jwt_refresh_expiration,
         )
         return TokenRefreshResponse(
@@ -172,7 +170,7 @@ class TokenRefresh(
                 ),
                 status_code=HTTPStatus.UNAUTHORIZED,
             )
-        raise
+        raise exc  # pragma: no cover
 
 
 @final

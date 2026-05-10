@@ -33,7 +33,7 @@ def make_user(
 
 
 def make_token(user: User) -> str:
-    """Encode a valid access JWT for ``user`` matching what TokenCreate emits."""
+    """Encode a valid access JWT for ``user`` (parity with TokenCreate)."""
     now = timezone.now()
     token = JWToken(
         sub=str(user.id),

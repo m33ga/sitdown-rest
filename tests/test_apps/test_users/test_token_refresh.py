@@ -6,6 +6,7 @@ import datetime as dt
 import json
 import uuid
 
+import jwt as pyjwt
 import pytest
 from django.conf import settings
 from django.test import Client
@@ -14,7 +15,7 @@ from dmr.security.jwt.token import JWToken
 
 from server.apps.users.models import User
 
-TOKEN_URL = '/api/v1/token/'
+TOKEN_URL = '/api/v1/token/'  # noqa: S105
 REFRESH_URL = '/api/v1/token/refresh/'
 JWT_ALGORITHM = 'HS256'
 
@@ -61,7 +62,7 @@ def _encode_token(
     *,
     sub: str,
     expires_at: dt.datetime,
-    token_type: str = 'refresh',
+    token_type: str = 'refresh',  # noqa: S107
 ) -> str:
     """Manually encode a JWT for negative-path tests."""
     return JWToken(
@@ -74,7 +75,7 @@ def _encode_token(
 @pytest.mark.django_db
 def test_token_refresh_success() -> None:
     """Valid refresh JWT returns 200 with a fresh access/refresh pair."""
-    _make_user('refresh_alice', 'pass1')  # noqa: S106
+    _make_user('refresh_alice', 'pass1')
     client = Client()
     tokens = _create_token_pair(client, 'refresh_alice', 'pass1')
 
@@ -101,13 +102,12 @@ def test_token_refresh_invalid_token() -> None:
 @pytest.mark.django_db
 def test_token_refresh_expired_token() -> None:
     """A refresh JWT with `exp` in the past returns 401."""
-    user = _make_user('refresh_carol', 'pass3')  # noqa: S106
+    user = _make_user('refresh_carol', 'pass3')
     # Manually craft an "expired" refresh token. JWToken's __post_init__
     # rejects past exp values, so we shift `now` forward via leeway tricks
     # — instead, encode at the boundary by passing exp 1 second ahead and
     # then sleeping briefly is unreliable. Use a far-past exp directly via
     # PyJWT to bypass JWToken's constructor validation.
-    import jwt as pyjwt  # local import to avoid polluting module namespace
 
     expired_payload = {
         'sub': str(user.pk),
@@ -135,11 +135,11 @@ def test_token_refresh_expired_token() -> None:
 @pytest.mark.django_db
 def test_token_refresh_access_token_rejected() -> None:
     """A JWT with `extras.type='access'` cannot be used to refresh."""
-    user = _make_user('refresh_dave', 'pass4')  # noqa: S106
+    user = _make_user('refresh_dave', 'pass4')
     access_only = _encode_token(
         sub=str(user.pk),
         expires_at=timezone.now() + dt.timedelta(seconds=60),
-        token_type='access',
+        token_type='access',  # noqa: S106
     )
 
     client = Client()
