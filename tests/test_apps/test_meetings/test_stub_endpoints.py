@@ -35,3 +35,8 @@ def test_entries_collection_route_is_wired() -> None:
 def test_entries_detail_route_is_wired() -> None:
     """PATCH /api/v1/meetings/{id}/entries/{user_id}/ must not be 404."""
     assert _resolves(f'/api/v1/meetings/{_MEETING_ID}/entries/{_USER_ID}/')
+
+
+def test_nonexistent_route_not_wired() -> None:
+    """Unknown paths must not resolve."""
+    assert not _resolves('/api/v1/does-not-exist/')

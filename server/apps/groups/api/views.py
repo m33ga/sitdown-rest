@@ -28,7 +28,6 @@ class GroupsCollection(
     @modify(tags=['groups'])
     def get(self) -> PaginatedGroupsPayload:
         """List accessible groups (pinned first)."""
-        log.debug('groups_list_called')
         raise NotImplementedError
 
     @modify(status_code=HTTPStatus.CREATED, tags=['groups'])
@@ -37,7 +36,6 @@ class GroupsCollection(
         parsed_body: Body[GroupCreatePayload],
     ) -> GroupCreatedPayload:
         """Create a new project group (MANAGER only)."""
-        log.debug('groups_create_called')
         raise NotImplementedError
 
 
@@ -54,13 +52,11 @@ class GroupsDetail(
         parsed_body: Body[GroupUpdatePayload],
     ) -> GroupCreatedPayload:
         """Update a group's name (MANAGER only)."""
-        log.debug('groups_update_called', group_id=self.kwargs.get('id'))
         raise NotImplementedError
 
     @modify(status_code=HTTPStatus.NO_CONTENT, tags=['groups'])
     def delete(self) -> None:
         """Delete a group and all its meetings (MANAGER only)."""
-        log.debug('groups_destroy_called', group_id=self.kwargs.get('id'))
         raise NotImplementedError
 
 
@@ -74,13 +70,11 @@ class GroupsPin(
     @modify(status_code=HTTPStatus.NO_CONTENT, tags=['groups'])
     def put(self) -> None:
         """Pin a group for the requesting user (idempotent)."""
-        log.debug('groups_pin_called', group_id=self.kwargs.get('id'))
         raise NotImplementedError
 
     @modify(status_code=HTTPStatus.NO_CONTENT, tags=['groups'])
     def delete(self) -> None:
         """Unpin a group for the requesting user (idempotent)."""
-        log.debug('groups_unpin_called', group_id=self.kwargs.get('id'))
         raise NotImplementedError
 
 
@@ -94,7 +88,6 @@ class GroupsMembersCollection(
     @modify(tags=['members'])
     def get(self) -> list[ProjectMemberRecordPayload]:
         """List all project members."""
-        log.debug('groups_members_list_called', group_id=self.kwargs.get('id'))
         raise NotImplementedError
 
     @modify(status_code=HTTPStatus.CREATED, tags=['members'])
@@ -103,7 +96,6 @@ class GroupsMembersCollection(
         parsed_body: Body[AddMemberPayload],
     ) -> ProjectMemberRecordPayload:
         """Add a user to the project (MANAGER only)."""
-        log.debug('groups_members_add_called', group_id=self.kwargs.get('id'))
         raise NotImplementedError
 
 
@@ -117,9 +109,4 @@ class GroupsMembersDetail(
     @modify(status_code=HTTPStatus.NO_CONTENT, tags=['members'])
     def delete(self) -> None:
         """Remove a user from the project (MANAGER only)."""
-        log.debug(
-            'groups_members_remove_called',
-            group_id=self.kwargs.get('id'),
-            user_id=self.kwargs.get('user_id'),
-        )
         raise NotImplementedError

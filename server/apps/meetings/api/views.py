@@ -28,7 +28,6 @@ class MeetingsCollection(
     @modify(tags=['meetings'])
     def get(self) -> PaginatedMeetingsPayload:
         """List meetings for a group (sorted by date descending)."""
-        log.debug('meetings_list_called', group_id=self.kwargs.get('group_id'))
         raise NotImplementedError
 
     @modify(status_code=HTTPStatus.CREATED, tags=['meetings'])
@@ -37,7 +36,6 @@ class MeetingsCollection(
         parsed_body: Body[MeetingCreatePayload],
     ) -> MeetingPayload:
         """Create a standup meeting (MANAGER only; eagerly creates MemberEntries)."""
-        log.debug('meetings_create_called', group_id=self.kwargs.get('group_id'))
         raise NotImplementedError
 
 
@@ -54,13 +52,11 @@ class MeetingsDetail(
         parsed_body: Body[MeetingUpdatePayload],
     ) -> MeetingPayload:
         """Update meeting metadata (MANAGER only)."""
-        log.debug('meetings_update_called', meeting_id=self.kwargs.get('id'))
         raise NotImplementedError
 
     @modify(status_code=HTTPStatus.NO_CONTENT, tags=['meetings'])
     def delete(self) -> None:
         """Delete a meeting and all its MemberEntries (MANAGER only)."""
-        log.debug('meetings_destroy_called', meeting_id=self.kwargs.get('id'))
         raise NotImplementedError
 
 
@@ -74,7 +70,6 @@ class EntriesCollection(
     @modify(tags=['entries'])
     def get(self) -> list[MemberEntryPayload]:
         """List all member entries for a meeting (ordered by updated_at desc)."""
-        log.debug('entries_list_called', meeting_id=self.kwargs.get('id'))
         raise NotImplementedError
 
 
@@ -91,9 +86,4 @@ class EntriesDetail(
         parsed_body: Body[MemberEntryUpdatePayload],
     ) -> MemberEntryPayload:
         """Update a member entry (MEMBER: own only; MANAGER: any; read-only if completed)."""
-        log.debug(
-            'entries_update_called',
-            meeting_id=self.kwargs.get('id'),
-            user_id=self.kwargs.get('user_id'),
-        )
         raise NotImplementedError
