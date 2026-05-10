@@ -8,6 +8,7 @@ import structlog
 from dmr import Body, Controller, ResponseSpec, modify
 from dmr.exceptions import NotAuthenticatedError
 from dmr.plugins.msgspec import MsgspecSerializer
+from dmr.response import APIError
 from dmr.security.jwt.views import (
     ObtainTokensPayload,
     ObtainTokensResponse,
@@ -16,6 +17,8 @@ from dmr.security.jwt.views import (
     RefreshTokenSyncController,
 )
 
+from server.apps.users.logic.exceptions import PermissionDeniedError
+from server.apps.users.logic.usecases.list_users import ListUsersUseCase
 from server.apps.users.logic.value_objects import (
     ErrorResponse,
     PaginatedUsersPayload,
@@ -30,6 +33,38 @@ log = structlog.get_logger()
 
 _ACCESS_EXPIRY = dt.timedelta(seconds=60)
 _REFRESH_EXPIRY = dt.timedelta(days=30)
+
+_DEFAULT_PER_PAGE = 20
+_MAX_PER_PAGE = 100
+
+
+def _forbidden() -> APIError:
+    return APIError(
+        ErrorResponse(
+            error='FORBIDDEN',
+            message='You do not have permission to perform this action',
+        ),
+        status_code=HTTPStatus.FORBIDDEN,
+    )
+
+
+def _parse_int_param(
+    raw: str | None,
+    *,
+    default: int,
+    minimum: int,
+    maximum: int | None = None,
+) -> int:
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    value = max(value, minimum)
+    if maximum is not None:
+        value = min(value, maximum)
+    return value
 
 
 @final
@@ -198,7 +233,42 @@ class UsersList(
 ):
     """GET /users — paginated organisation user directory (MANAGER only)."""
 
-    @modify(status_code=HTTPStatus.OK, tags=['users'])
+    @modify(
+        status_code=HTTPStatus.OK,
+        tags=['users'],
+        validate_responses=False,
+    )
     def get(self) -> PaginatedUsersPayload:
         """Return a paginated, searchable list of org users."""
-        raise NotImplementedError
+        search_raw = self.request.GET.get('search') or ''
+        search = search_raw.strip() or None
+        page = _parse_int_param(
+            self.request.GET.get('page'),
+            default=1,
+            minimum=1,
+        )
+        per_page = _parse_int_param(
+            self.request.GET.get('per_page'),
+            default=_DEFAULT_PER_PAGE,
+            minimum=1,
+            maximum=_MAX_PER_PAGE,
+        )
+        log.debug(
+            'users_list_called',
+            search=search,
+            page=page,
+            per_page=per_page,
+        )
+        use_case = self.resolve(ListUsersUseCase)
+        try:
+            result = use_case(
+                user=self.request.user,
+                search=search,
+                page=page,
+                per_page=per_page,
+            )
+        except PermissionDeniedError:
+            log.debug('users_list_forbidden')
+            raise _forbidden() from None
+        log.debug('users_list_done', total=result.total)
+        return result
