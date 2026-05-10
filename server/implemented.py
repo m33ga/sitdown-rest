@@ -36,12 +36,16 @@ def _inject_django(container: punq.Container) -> None:
 
 
 def _inject_users(container: punq.Container) -> None:
-    # Token issuance and refresh now use dmr's pre-built controllers
+    # Token issuance and refresh use dmr's pre-built controllers
     # (ObtainTokensSyncController / RefreshTokenSyncController) which do
-    # not go through punq DI. The Users domain has no use cases requiring
-    # registration at this stage; this hook is left in place for future
-    # additions (e.g. the Users directory milestone).
-    pass
+    # not go through punq DI. The directory endpoint registers below.
+    from server.apps.users.infra.mappers import UserMapper
+    from server.apps.users.infra.repository import UserRepository
+    from server.apps.users.logic.usecases.list_users import ListUsersUseCase
+
+    container.register(UserRepository, scope=punq.Scope.singleton)
+    container.register(UserMapper, scope=punq.Scope.singleton)
+    container.register(ListUsersUseCase)
 
 
 def _inject_groups(container: punq.Container) -> None:
