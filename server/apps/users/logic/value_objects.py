@@ -48,3 +48,10 @@ class PaginatedUsersPayload(msgspec.Struct, frozen=True):
     total: int
     page: int
     per_page: int
+
+
+class ErrorResponse(msgspec.Struct, frozen=True):
+    """Standard error response per openapi.yaml ErrorResponse schema."""
+
+    error: str
+    message: str
