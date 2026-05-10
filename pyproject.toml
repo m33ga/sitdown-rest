@@ -241,6 +241,10 @@ omit = [
   # Environment-specific settings — only 'test' is loaded under pytest:
   "server/settings/environments/development.py",
   "server/settings/environments/production.py",
+  # Schemathesis suite is currently `pytest.mark.skip`; tracked under the
+  # "OpenAPI schema completeness" milestone. Re-include once the suite
+  # passes and the marker is removed.
+  "tests/test_apps/test_schema.py",
 ]
 
 

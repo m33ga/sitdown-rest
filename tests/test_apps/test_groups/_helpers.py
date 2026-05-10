@@ -33,12 +33,12 @@ def make_user(
 
 
 def make_token(user: User) -> str:
-    """Encode a valid access JWT for ``user``."""
+    """Encode a valid access JWT for ``user`` matching what TokenCreate emits."""
     now = timezone.now()
     token = JWToken(
         sub=str(user.id),
         exp=now + datetime.timedelta(seconds=ACCESS_TOKEN_EXPIRY_SECONDS),
-        extras={'email': user.email, 'role': user.role},
+        extras={'type': 'access'},
     )
     return token.encode(secret=settings.SECRET_KEY, algorithm=JWT_ALGORITHM)
 
