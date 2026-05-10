@@ -42,8 +42,11 @@ jobs:
             DJANGO_ENV=development
 
       - name: Run full CI script (ruff, mypy, pytest, etc.)
+        # ``bash docker/django/ci.sh`` rather than ``./docker/django/ci.sh``
+        # so the script runs regardless of whether the executable bit is
+        # tracked in git (Windows checkouts do not set it).
         run: |
-          docker compose run --user=root --rm web ./docker/django/ci.sh
+          docker compose run --user=root --rm web bash docker/django/ci.sh
 
       - name: Upload coverage report
         if: always()

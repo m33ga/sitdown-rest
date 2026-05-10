@@ -48,8 +48,10 @@ jobs:
             DJANGO_ENV=development
 
       - name: Run full CI script (ruff, mypy, pytest, etc.)
+        # See ci.yml for the ``bash``-prefix rationale (Windows checkout
+        # doesn't preserve the +x bit on docker/django/ci.sh).
         run: |
-          docker compose run --user=root --rm web ./docker/django/ci.sh
+          docker compose run --user=root --rm web bash docker/django/ci.sh
 
   build-and-push:
     name: Build + push images to GHCR
