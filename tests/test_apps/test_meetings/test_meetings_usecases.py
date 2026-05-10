@@ -12,7 +12,6 @@ from server.apps.meetings.infra.mappers import MeetingMapper
 from server.apps.meetings.infra.repository import MeetingRepository
 from server.apps.meetings.logic.exceptions import (
     GroupNotFoundError,
-    MeetingDateConflictError,
     MeetingNotFoundError,
     PermissionDeniedError,
 )
@@ -186,8 +185,8 @@ def test_repository_create_with_entries_excludes_guests() -> None:
 
 
 @pytest.mark.django_db
-def test_repository_create_raises_on_duplicate_date() -> None:
-    """A second create with same (group, date) raises the conflict error."""
+def test_repository_create_allows_duplicate_date() -> None:
+    """Two creates for the same (group, date) both succeed (no constraint)."""
     repo = MeetingRepository()
     group = Group.objects.create(name='g')
     repo.create_with_entries(
@@ -195,17 +194,23 @@ def test_repository_create_raises_on_duplicate_date() -> None:
         title='m1',
         date=datetime.date(2026, 5, 1),
     )
-    with pytest.raises(MeetingDateConflictError):
-        repo.create_with_entries(
+    repo.create_with_entries(
+        group=group,
+        title='m2',
+        date=datetime.date(2026, 5, 1),
+    )
+    assert (
+        Meeting.objects.filter(
             group=group,
-            title='m2',
             date=datetime.date(2026, 5, 1),
-        )
+        ).count()
+        == 2
+    )
 
 
 @pytest.mark.django_db
-def test_repository_update_raises_on_duplicate_date() -> None:
-    """Updating a meeting's date to a taken slot raises the conflict error."""
+def test_repository_update_allows_duplicate_date() -> None:
+    """Updating a meeting onto an already-used date is allowed."""
     repo = MeetingRepository()
     group = Group.objects.create(name='g')
     Meeting.objects.create(
@@ -218,13 +223,19 @@ def test_repository_update_raises_on_duplicate_date() -> None:
         title='other',
         date=datetime.date(2026, 5, 8),
     )
-    with pytest.raises(MeetingDateConflictError):
-        repo.update(
-            other,
-            title=None,
+    repo.update(
+        other,
+        title=None,
+        date=datetime.date(2026, 5, 1),
+        completed=None,
+    )
+    assert (
+        Meeting.objects.filter(
+            group=group,
             date=datetime.date(2026, 5, 1),
-            completed=None,
-        )
+        ).count()
+        == 2
+    )
 
 
 @pytest.mark.django_db

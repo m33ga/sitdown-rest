@@ -15,9 +15,8 @@ from uuid import UUID
 import attrs
 import structlog
 from django.apps import apps as django_apps
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
-from server.apps.meetings.logic.exceptions import MeetingDateConflictError
 from server.apps.meetings.models import Meeting, MemberEntry
 
 if TYPE_CHECKING:
@@ -138,8 +137,6 @@ class MeetingRepository:
         - Each entry's ``promised`` is the user's most recent non-empty
           ``will_do`` across all earlier meetings in this same group, or
           ``''`` if no prior entry exists.
-        - Raises ``MeetingDateConflictError`` if the unique
-          ``(group, date)`` constraint is violated.
         """
         log.debug(
             'meeting_repo_create_called',
@@ -147,19 +144,11 @@ class MeetingRepository:
             date=str(date),
         )
         with transaction.atomic():
-            try:
-                meeting = Meeting.objects.create(
-                    group=group,
-                    title=title,
-                    date=date,
-                )
-            except IntegrityError:
-                log.debug(
-                    'meeting_repo_create_date_conflict',
-                    group_id=str(group.id),
-                    date=str(date),
-                )
-                raise MeetingDateConflictError from None
+            meeting = Meeting.objects.create(
+                group=group,
+                title=title,
+                date=date,
+            )
             members = list(
                 group.members.exclude(user__role='GUEST').select_related(
                     'user'
@@ -223,7 +212,7 @@ class MeetingRepository:
         date: _date_module.date | None,
         completed: bool | None,
     ) -> Meeting:
-        """Apply partial updates and persist; raise on date collisions."""
+        """Apply partial updates and persist the meeting."""
         log.debug(
             'meeting_repo_update_called',
             meeting_id=str(meeting.id),
@@ -244,15 +233,8 @@ class MeetingRepository:
         if not update_fields:
             log.debug('meeting_repo_update_noop', meeting_id=str(meeting.id))
             return meeting
-        try:
-            with transaction.atomic():
-                meeting.save(update_fields=update_fields)
-        except IntegrityError:
-            log.debug(
-                'meeting_repo_update_date_conflict',
-                meeting_id=str(meeting.id),
-            )
-            raise MeetingDateConflictError from None
+        with transaction.atomic():
+            meeting.save(update_fields=update_fields)
         log.debug(
             'meeting_repo_update_done',
             meeting_id=str(meeting.id),
