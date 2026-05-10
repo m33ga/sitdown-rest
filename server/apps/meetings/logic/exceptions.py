@@ -12,3 +12,11 @@ class PermissionDeniedError(Exception):
 
 class MeetingDateConflictError(Exception):
     """Raised when (group, date) collides with an existing meeting."""
+
+
+class EntryNotFoundError(Exception):
+    """Raised when no MemberEntry row exists for (meeting, user_id)."""
+
+
+class MeetingCompletedError(Exception):
+    """Raised when attempting to mutate an entry on a completed meeting."""
