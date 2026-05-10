@@ -102,7 +102,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cors headers Settings
 CORS_ALLOWED_ORIGINS = [
-    config('FRONTEND_URL', default='http://localhost:5173'),
+    config('FRONTEND_URL', default='https://m33ga.github.io'),
 ]
 
 CORS_ALLOWED_CREDENTIALS = True
