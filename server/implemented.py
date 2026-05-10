@@ -87,7 +87,29 @@ def _inject_groups(container: punq.Container) -> None:
 
 
 def _inject_meetings(container: punq.Container) -> None:
-    pass  # Populated in: Meetings milestone
+    # See note in _inject_users: repos/mappers must be registered before
+    # any use case that consumes them.
+    from server.apps.meetings.infra.mappers import MeetingMapper
+    from server.apps.meetings.infra.repository import MeetingRepository
+    from server.apps.meetings.logic.usecases.create_meeting import (
+        CreateMeetingUseCase,
+    )
+    from server.apps.meetings.logic.usecases.delete_meeting import (
+        DeleteMeetingUseCase,
+    )
+    from server.apps.meetings.logic.usecases.list_meetings import (
+        ListMeetingsUseCase,
+    )
+    from server.apps.meetings.logic.usecases.update_meeting import (
+        UpdateMeetingUseCase,
+    )
+
+    container.register(MeetingRepository, scope=punq.Scope.singleton)
+    container.register(MeetingMapper, scope=punq.Scope.singleton)
+    container.register(ListMeetingsUseCase)
+    container.register(CreateMeetingUseCase)
+    container.register(UpdateMeetingUseCase)
+    container.register(DeleteMeetingUseCase)
 
 
 def populate_dependencies(container: punq.Container) -> punq.Container:
