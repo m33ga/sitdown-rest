@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import attrs
@@ -7,10 +10,15 @@ from django.conf import settings
 from django.utils import timezone
 from dmr.security.jwt.token import JWToken
 
-from server.apps.users.infra.repository import RefreshTokenRepository, UserRepository
 from server.apps.users.logic.constants import ACCESS_TOKEN_EXPIRY_SECONDS, JWT_ALGORITHM, REFRESH_TOKEN_EXPIRY_DAYS
 from server.apps.users.logic.exceptions import InvalidRefreshTokenError
 from server.apps.users.logic.value_objects import TokenRefreshPayload, TokenRefreshResponse
+
+if TYPE_CHECKING:
+    from server.apps.users.infra.repository import (
+        RefreshTokenRepository,
+        UserRepository,
+    )
 
 log = structlog.get_logger()
 

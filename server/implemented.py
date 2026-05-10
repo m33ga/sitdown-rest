@@ -36,10 +36,21 @@ def _inject_django(container: punq.Container) -> None:
 
 
 def _inject_users(container: punq.Container) -> None:
+    # Use cases reference Repository / Mapper types only under TYPE_CHECKING,
+    # so punq must already have those types in its localns by the time
+    # get_type_hints() runs on the use case __init__. Keep the order:
+    # repos and mappers BEFORE any use case that consumes them.
     from server.apps.users.infra.mappers import UserMapper
-    from server.apps.users.infra.repository import RefreshTokenRepository, UserRepository
-    from server.apps.users.logic.usecases.create_tokens import CreateTokensUseCase
-    from server.apps.users.logic.usecases.refresh_tokens import RefreshTokensUseCase
+    from server.apps.users.infra.repository import (
+        RefreshTokenRepository,
+        UserRepository,
+    )
+    from server.apps.users.logic.usecases.create_tokens import (
+        CreateTokensUseCase,
+    )
+    from server.apps.users.logic.usecases.refresh_tokens import (
+        RefreshTokensUseCase,
+    )
 
     container.register(UserRepository, scope=punq.Scope.singleton)
     container.register(RefreshTokenRepository, scope=punq.Scope.singleton)
@@ -49,7 +60,31 @@ def _inject_users(container: punq.Container) -> None:
 
 
 def _inject_groups(container: punq.Container) -> None:
-    pass  # Populated in: Groups milestone
+    # See note in _inject_users: repos/mappers must be registered before
+    # any use case that consumes them.
+    from server.apps.groups.infra.mappers import GroupMapper
+    from server.apps.groups.infra.repository import GroupRepository
+    from server.apps.groups.logic.usecases.create_group import (
+        CreateGroupUseCase,
+    )
+    from server.apps.groups.logic.usecases.delete_group import (
+        DeleteGroupUseCase,
+    )
+    from server.apps.groups.logic.usecases.list_groups import ListGroupsUseCase
+    from server.apps.groups.logic.usecases.pin_group import PinGroupUseCase
+    from server.apps.groups.logic.usecases.unpin_group import UnpinGroupUseCase
+    from server.apps.groups.logic.usecases.update_group import (
+        UpdateGroupUseCase,
+    )
+
+    container.register(GroupRepository, scope=punq.Scope.singleton)
+    container.register(GroupMapper, scope=punq.Scope.singleton)
+    container.register(ListGroupsUseCase)
+    container.register(CreateGroupUseCase)
+    container.register(UpdateGroupUseCase)
+    container.register(DeleteGroupUseCase)
+    container.register(PinGroupUseCase)
+    container.register(UnpinGroupUseCase)
 
 
 def _inject_meetings(container: punq.Container) -> None:
