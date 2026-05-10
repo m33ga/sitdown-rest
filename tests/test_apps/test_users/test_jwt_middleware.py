@@ -15,7 +15,7 @@ from server.apps.users.logic.constants import JWT_ALGORITHM
 from server.apps.users.models import User
 
 GROUPS_URL = '/api/v1/groups/'
-TOKEN_URL = '/api/v1/token/'
+TOKEN_URL = '/api/v1/token/'  # noqa: S105
 ADMIN_URL = '/admin/'
 
 
@@ -23,7 +23,7 @@ def _make_user(username: str, *, role: str = 'MANAGER') -> User:
     user = User.objects.create_user(
         username=username,
         email=f'{username}@example.com',
-        password='secret-pw',
+        password='secret-pw',  # noqa: S106
     )
     user.role = role
     user.save(update_fields=['role'])
@@ -76,7 +76,7 @@ def test_middleware_skips_token_refresh_endpoint() -> None:
 
 @pytest.mark.django_db
 def test_middleware_requires_bearer_prefix() -> None:
-    """A request to a protected endpoint without Authorization header gets 401."""
+    """Protected endpoint without Authorization header returns 401."""
     client = Client()
     response = client.get(GROUPS_URL)
     assert response.status_code == 401

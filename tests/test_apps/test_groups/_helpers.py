@@ -19,7 +19,7 @@ def make_user(
     username: str,
     *,
     role: str = 'MEMBER',
-    password: str = 'pw-secret-123',
+    password: str = 'pw-secret-123',  # noqa: S107
 ) -> User:
     """Create a user with a unique email and the given role."""
     user = User.objects.create_user(

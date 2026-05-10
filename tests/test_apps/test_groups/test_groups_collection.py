@@ -1,4 +1,4 @@
-"""Integration tests for ``GET /api/v1/groups/`` and ``POST /api/v1/groups/``."""
+"""Integration tests for the ``/api/v1/groups/`` collection endpoints."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from django.test import Client
 
 from server.apps.groups.models import Group, ProjectMember, UserPinnedGroup
 from server.apps.users.models import User
+
 from ._helpers import auth_headers, make_user
 
 GROUPS_URL = '/api/v1/groups/'
@@ -79,7 +80,7 @@ def test_groups_list_guest_sees_only_member_groups(guest: User) -> None:
 def test_groups_list_pinned_first(manager: User) -> None:
     """Pinned groups must appear before non-pinned, regardless of created_at."""
     older = Group.objects.create(name='older')
-    newer = Group.objects.create(name='newer')
+    Group.objects.create(name='newer')
     UserPinnedGroup.objects.create(user=manager, group=older)
 
     response = _get(Client(), user=manager)

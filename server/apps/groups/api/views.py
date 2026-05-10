@@ -63,7 +63,7 @@ def _parse_int_param(
     minimum: int,
     maximum: int | None = None,
 ) -> int:
-    if raw is None or raw == '':
+    if not raw:
         return default
     try:
         value = int(raw)

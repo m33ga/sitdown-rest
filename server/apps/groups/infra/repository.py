@@ -25,7 +25,7 @@ log = structlog.get_logger()
 
 @attrs.define(slots=True)
 class GroupRepository:
-    """Thin wrapper around the Django ORM for ``Group`` and pin/member queries."""
+    """ORM wrapper for ``Group`` plus pin and project-member queries."""
 
     def list_for_user(
         self,

@@ -27,7 +27,7 @@ class DeleteGroupUseCase:
     _group_repo: GroupRepository
 
     def __call__(self, user: User, group_id: UUID) -> None:
-        """Run the use case; raises if the user is not a MANAGER or group missing."""
+        """Run the use case; raises if non-MANAGER or group is missing."""
         log.debug(
             'delete_group_called',
             user_id=str(user.id),

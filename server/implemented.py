@@ -37,9 +37,16 @@ def _inject_django(container: punq.Container) -> None:
 
 def _inject_users(container: punq.Container) -> None:
     from server.apps.users.infra.mappers import UserMapper
-    from server.apps.users.infra.repository import RefreshTokenRepository, UserRepository
-    from server.apps.users.logic.usecases.create_tokens import CreateTokensUseCase
-    from server.apps.users.logic.usecases.refresh_tokens import RefreshTokensUseCase
+    from server.apps.users.infra.repository import (
+        RefreshTokenRepository,
+        UserRepository,
+    )
+    from server.apps.users.logic.usecases.create_tokens import (
+        CreateTokensUseCase,
+    )
+    from server.apps.users.logic.usecases.refresh_tokens import (
+        RefreshTokensUseCase,
+    )
 
     container.register(UserRepository, scope=punq.Scope.singleton)
     container.register(RefreshTokenRepository, scope=punq.Scope.singleton)
@@ -51,12 +58,18 @@ def _inject_users(container: punq.Container) -> None:
 def _inject_groups(container: punq.Container) -> None:
     from server.apps.groups.infra.mappers import GroupMapper
     from server.apps.groups.infra.repository import GroupRepository
-    from server.apps.groups.logic.usecases.create_group import CreateGroupUseCase
-    from server.apps.groups.logic.usecases.delete_group import DeleteGroupUseCase
+    from server.apps.groups.logic.usecases.create_group import (
+        CreateGroupUseCase,
+    )
+    from server.apps.groups.logic.usecases.delete_group import (
+        DeleteGroupUseCase,
+    )
     from server.apps.groups.logic.usecases.list_groups import ListGroupsUseCase
     from server.apps.groups.logic.usecases.pin_group import PinGroupUseCase
     from server.apps.groups.logic.usecases.unpin_group import UnpinGroupUseCase
-    from server.apps.groups.logic.usecases.update_group import UpdateGroupUseCase
+    from server.apps.groups.logic.usecases.update_group import (
+        UpdateGroupUseCase,
+    )
 
     container.register(GroupRepository, scope=punq.Scope.singleton)
     container.register(GroupMapper, scope=punq.Scope.singleton)

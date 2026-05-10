@@ -14,7 +14,13 @@ from server.apps.users.models import User
 from ._helpers import auth_headers
 
 
-def _patch(client: Client, group_id: uuid.UUID, payload: dict, *, user: User) -> object:
+def _patch(
+    client: Client,
+    group_id: uuid.UUID,
+    payload: dict,
+    *,
+    user: User,
+) -> object:
     return client.patch(
         f'/api/v1/groups/{group_id}/',
         json.dumps(payload),
