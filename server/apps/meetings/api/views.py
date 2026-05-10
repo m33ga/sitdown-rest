@@ -5,7 +5,7 @@ from typing import final
 from uuid import UUID
 
 import structlog
-from dmr import Body, Controller, modify
+from dmr import Body, Controller, ResponseSpec, modify
 from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.response import APIError
 
@@ -50,6 +50,19 @@ log = structlog.get_logger()
 
 _DEFAULT_PER_PAGE = 20
 _MAX_PER_PAGE = 100
+
+_FORBIDDEN_RESPONSE = ResponseSpec(
+    return_type=ErrorResponse,
+    status_code=HTTPStatus.FORBIDDEN,
+)
+_NOT_FOUND_RESPONSE = ResponseSpec(
+    return_type=ErrorResponse,
+    status_code=HTTPStatus.NOT_FOUND,
+)
+_CONFLICT_RESPONSE = ResponseSpec(
+    return_type=ErrorResponse,
+    status_code=HTTPStatus.CONFLICT,
+)
 
 
 def _forbidden() -> APIError:
@@ -134,7 +147,7 @@ class MeetingsCollection(
     @modify(
         tags=['meetings'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def get(self) -> PaginatedMeetingsPayload:
         """List meetings for a group (sorted by date descending)."""
@@ -175,7 +188,11 @@ class MeetingsCollection(
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=['meetings'],
-        validate_responses=False,
+        extra_responses=[
+            _FORBIDDEN_RESPONSE,
+            _NOT_FOUND_RESPONSE,
+            _CONFLICT_RESPONSE,
+        ],
     )
     def post(
         self,
@@ -228,7 +245,11 @@ class MeetingsDetail(
     @modify(
         tags=['meetings'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
+        extra_responses=[
+            _FORBIDDEN_RESPONSE,
+            _NOT_FOUND_RESPONSE,
+            _CONFLICT_RESPONSE,
+        ],
     )
     def patch(
         self,
@@ -271,7 +292,7 @@ class MeetingsDetail(
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
         tags=['meetings'],
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def delete(self) -> None:
         """Delete a meeting and all its MemberEntries (MANAGER only)."""
@@ -308,7 +329,7 @@ class EntriesCollection(
     @modify(
         tags=['entries'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def get(self) -> list[MemberEntryPayload]:
         """List all member entries for a meeting (newest updated first)."""
@@ -350,7 +371,7 @@ class EntriesDetail(
     @modify(
         tags=['entries'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def patch(
         self,

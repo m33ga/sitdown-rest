@@ -11,7 +11,11 @@ class UserPayload(msgspec.Struct, frozen=True):
     id: uuid.UUID
     email: str
     name: str
-    role: str  # TODO: replace with Role enum in domain models milestone
+    # ``role`` is kept as ``str`` (rather than ``User.Role`` or a shared
+    # enum) to avoid a cross-app import that would break the
+    # apps-independence import-linter contract. Values are stable per the
+    # OpenAPI schema (MANAGER | MEMBER | GUEST).
+    role: str
 
 
 class PaginatedUsersPayload(msgspec.Struct, frozen=True):

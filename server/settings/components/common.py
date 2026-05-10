@@ -32,6 +32,9 @@ INSTALLED_APPS: tuple[str, ...] = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # django-unfold (must precede django.contrib.admin):
+    'unfold',
+    'unfold.contrib.forms',
     # django-admin:
     'django.contrib.admin',
     'django.contrib.admindocs',
@@ -202,3 +205,28 @@ PERMISSIONS_POLICY: dict[str, str | list[str]] = {}
 # https://docs.djangoproject.com/en/6.0/ref/settings/#std:setting-EMAIL_TIMEOUT
 
 EMAIL_TIMEOUT = 5
+
+
+# django-unfold theme
+# https://unfoldadmin.com/docs/configuration/settings/
+
+UNFOLD = {
+    'SITE_TITLE': 'Sitdown admin',
+    'SITE_HEADER': 'Sitdown',
+    'SITE_URL': '/',
+    'COLORS': {
+        'primary': {
+            '50': '253 243 239',
+            '100': '251 229 220',
+            '200': '245 198 179',
+            '300': '239 166 138',
+            '400': '233 137 113',
+            '500': '224 122 95',
+            '600': '208 78 44',
+            '700': '173 62 34',
+            '800': '138 49 27',
+            '900': '107 38 21',
+            '950': '72 25 16',
+        },
+    },
+}

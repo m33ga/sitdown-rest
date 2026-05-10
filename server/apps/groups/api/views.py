@@ -5,7 +5,7 @@ from typing import final
 from uuid import UUID
 
 import structlog
-from dmr import Body, Controller, modify
+from dmr import Body, Controller, ResponseSpec, modify
 from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.response import APIError
 
@@ -42,6 +42,19 @@ log = structlog.get_logger()
 
 _DEFAULT_PER_PAGE = 20
 _MAX_PER_PAGE = 100
+
+_FORBIDDEN_RESPONSE = ResponseSpec(
+    return_type=ErrorResponse,
+    status_code=HTTPStatus.FORBIDDEN,
+)
+_NOT_FOUND_RESPONSE = ResponseSpec(
+    return_type=ErrorResponse,
+    status_code=HTTPStatus.NOT_FOUND,
+)
+_CONFLICT_RESPONSE = ResponseSpec(
+    return_type=ErrorResponse,
+    status_code=HTTPStatus.CONFLICT,
+)
 
 
 def _forbidden() -> APIError:
@@ -125,7 +138,6 @@ class GroupsCollection(
     @modify(
         tags=['groups'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
     )
     def get(self) -> PaginatedGroupsPayload:
         """List accessible groups (pinned first)."""
@@ -155,7 +167,7 @@ class GroupsCollection(
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=['groups'],
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE],
     )
     def post(
         self,
@@ -183,7 +195,7 @@ class GroupsDetail(
     @modify(
         tags=['groups'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def patch(
         self,
@@ -211,7 +223,7 @@ class GroupsDetail(
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
         tags=['groups'],
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def delete(self) -> None:
         """Delete a group and all its meetings (MANAGER only)."""
@@ -239,7 +251,7 @@ class GroupsPin(
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
         tags=['groups'],
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def put(self) -> None:
         """Pin a group for the requesting user (idempotent)."""
@@ -259,7 +271,7 @@ class GroupsPin(
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
         tags=['groups'],
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def delete(self) -> None:
         """Unpin a group for the requesting user (idempotent)."""
@@ -287,7 +299,7 @@ class GroupsMembersCollection(
     @modify(
         tags=['members'],
         status_code=HTTPStatus.OK,
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def get(self) -> list[ProjectMemberRecordPayload]:
         """List all project members of a group."""
@@ -312,7 +324,11 @@ class GroupsMembersCollection(
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=['members'],
-        validate_responses=False,
+        extra_responses=[
+            _FORBIDDEN_RESPONSE,
+            _NOT_FOUND_RESPONSE,
+            _CONFLICT_RESPONSE,
+        ],
     )
     def post(
         self,
@@ -369,7 +385,7 @@ class GroupsMembersDetail(
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
         tags=['members'],
-        validate_responses=False,
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def delete(self) -> None:
         """Remove a user from the project (MANAGER only)."""
