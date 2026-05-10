@@ -62,3 +62,10 @@ class MemberEntryUpdatePayload(msgspec.Struct, frozen=True):
     will_do: str | None = None
     discussion: str | None = None
     notes: str | None = None
+
+
+class ErrorResponse(msgspec.Struct, frozen=True):
+    """Standard error envelope returned for 4xx responses."""
+
+    error: str
+    message: str
