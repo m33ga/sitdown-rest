@@ -187,7 +187,7 @@ def test_repository_create_with_entries_excludes_guests() -> None:
 
 @pytest.mark.django_db
 def test_repository_create_raises_on_duplicate_date() -> None:
-    """A second create with same (group, date) raises MeetingDateConflictError."""
+    """A second create with same (group, date) raises the conflict error."""
     repo = MeetingRepository()
     group = Group.objects.create(name='g')
     repo.create_with_entries(
@@ -205,7 +205,7 @@ def test_repository_create_raises_on_duplicate_date() -> None:
 
 @pytest.mark.django_db
 def test_repository_update_raises_on_duplicate_date() -> None:
-    """Updating a meeting's date to a taken slot raises MeetingDateConflictError."""
+    """Updating a meeting's date to a taken slot raises the conflict error."""
     repo = MeetingRepository()
     group = Group.objects.create(name='g')
     Meeting.objects.create(

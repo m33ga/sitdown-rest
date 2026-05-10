@@ -239,7 +239,7 @@ def test_meetings_create_promised_carry_over(manager: User) -> None:
     entry_a = MemberEntry.objects.get(meeting_id=new_meeting_id, user=user_a)
     entry_b = MemberEntry.objects.get(meeting_id=new_meeting_id, user=user_b)
     assert entry_a.promised == 'deploy v2'  # most-recent non-empty
-    assert entry_b.promised == ''  # no prior non-empty will_do
+    assert not entry_b.promised  # no prior non-empty will_do
 
 
 @pytest.mark.django_db
@@ -271,4 +271,4 @@ def test_meetings_create_carry_over_scoped_to_group(manager: User) -> None:
 
     new_meeting_id = uuid.UUID(json.loads(response.content)['id'])
     entry = MemberEntry.objects.get(meeting_id=new_meeting_id, user=user)
-    assert entry.promised == ''
+    assert not entry.promised

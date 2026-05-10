@@ -164,7 +164,7 @@ def test_meetings_update_not_found(manager: User) -> None:
 
 @pytest.mark.django_db
 def test_meetings_update_date_collision_returns_409(manager: User) -> None:
-    """Changing date to one already used by another meeting in the group → 409."""
+    """Date change colliding with another meeting in the group → 409."""
     group = Group.objects.create(name='g')
     Meeting.objects.create(
         group=group,

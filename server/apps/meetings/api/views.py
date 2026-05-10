@@ -160,7 +160,7 @@ class MeetingsCollection(
         self,
         parsed_body: Body[MeetingCreatePayload],
     ) -> MeetingPayload:
-        """Create a standup meeting (MANAGER only; eagerly creates MemberEntries)."""
+        """Create a meeting (MANAGER only; eagerly creates MemberEntries)."""
         group_id: UUID = self.kwargs['group_id']
         log.debug(
             'meetings_create_called',
@@ -286,7 +286,7 @@ class EntriesCollection(
 
     @modify(tags=['entries'])
     def get(self) -> list[MemberEntryPayload]:
-        """List all member entries for a meeting (ordered by updated_at desc)."""
+        """List all member entries for a meeting (newest updated first)."""
         raise NotImplementedError
 
 
@@ -302,5 +302,5 @@ class EntriesDetail(
         self,
         parsed_body: Body[MemberEntryUpdatePayload],
     ) -> MemberEntryPayload:
-        """Update a member entry (MEMBER: own only; MANAGER: any; read-only if completed)."""
+        """Update a member entry (MEMBER: own; MANAGER: any; r/o if done)."""
         raise NotImplementedError
