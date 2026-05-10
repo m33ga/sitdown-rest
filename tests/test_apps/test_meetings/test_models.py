@@ -6,7 +6,7 @@ import pytest
 from django.db import IntegrityError
 
 from server.apps.groups.models import Group
-from server.apps.meetings.models import MemberEntry, Meeting
+from server.apps.meetings.models import Meeting, MemberEntry
 from server.apps.users.models import User
 
 
