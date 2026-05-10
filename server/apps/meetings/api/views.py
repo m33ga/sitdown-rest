@@ -10,7 +10,9 @@ from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.response import APIError
 
 from server.apps.meetings.logic.exceptions import (
+    EntryNotFoundError,
     GroupNotFoundError,
+    MeetingCompletedError,
     MeetingDateConflictError,
     MeetingNotFoundError,
     PermissionDeniedError,
@@ -21,8 +23,14 @@ from server.apps.meetings.logic.usecases.create_meeting import (
 from server.apps.meetings.logic.usecases.delete_meeting import (
     DeleteMeetingUseCase,
 )
+from server.apps.meetings.logic.usecases.list_entries import (
+    ListEntriesUseCase,
+)
 from server.apps.meetings.logic.usecases.list_meetings import (
     ListMeetingsUseCase,
+)
+from server.apps.meetings.logic.usecases.update_entry import (
+    UpdateEntryUseCase,
 )
 from server.apps.meetings.logic.usecases.update_meeting import (
     UpdateMeetingUseCase,
@@ -81,6 +89,19 @@ def _date_conflict() -> APIError:
             message='A meeting for this group and date already exists',
         ),
         status_code=HTTPStatus.CONFLICT,
+    )
+
+
+def _entry_not_found(meeting_id: UUID, target_user_id: UUID) -> APIError:
+    return APIError(
+        ErrorResponse(
+            error='NOT_FOUND',
+            message=(
+                f"No entry for user '{target_user_id}' in meeting "
+                f"'{meeting_id}'"
+            ),
+        ),
+        status_code=HTTPStatus.NOT_FOUND,
     )
 
 
@@ -284,10 +305,39 @@ class EntriesCollection(
 ):
     """GET /meetings/{id}/entries."""
 
-    @modify(tags=['entries'])
+    @modify(
+        tags=['entries'],
+        status_code=HTTPStatus.OK,
+        validate_responses=False,
+    )
     def get(self) -> list[MemberEntryPayload]:
         """List all member entries for a meeting (newest updated first)."""
-        raise NotImplementedError
+        meeting_id: UUID = self.kwargs['id']
+        log.debug('entries_list_called', meeting_id=str(meeting_id))
+        use_case = self.resolve(ListEntriesUseCase)
+        try:
+            result = use_case(
+                user=self.request.user,
+                meeting_id=meeting_id,
+            )
+        except MeetingNotFoundError:
+            log.debug(
+                'entries_list_meeting_not_found',
+                meeting_id=str(meeting_id),
+            )
+            raise _meeting_not_found(meeting_id) from None
+        except PermissionDeniedError:
+            log.debug(
+                'entries_list_forbidden',
+                meeting_id=str(meeting_id),
+            )
+            raise _forbidden() from None
+        log.debug(
+            'entries_list_done',
+            meeting_id=str(meeting_id),
+            count=len(result),
+        )
+        return result
 
 
 @final
@@ -297,10 +347,54 @@ class EntriesDetail(
 ):
     """PATCH /meetings/{id}/entries/{user_id}."""
 
-    @modify(tags=['entries'])
+    @modify(
+        tags=['entries'],
+        status_code=HTTPStatus.OK,
+        validate_responses=False,
+    )
     def patch(
         self,
         parsed_body: Body[MemberEntryUpdatePayload],
     ) -> MemberEntryPayload:
         """Update a member entry (MEMBER: own; MANAGER: any; r/o if done)."""
-        raise NotImplementedError
+        meeting_id: UUID = self.kwargs['id']
+        target_user_id: UUID = self.kwargs['user_id']
+        log.debug(
+            'entries_update_called',
+            meeting_id=str(meeting_id),
+            target_user_id=str(target_user_id),
+        )
+        use_case = self.resolve(UpdateEntryUseCase)
+        try:
+            result = use_case(
+                user=self.request.user,
+                meeting_id=meeting_id,
+                target_user_id=target_user_id,
+                payload=parsed_body,
+            )
+        except MeetingNotFoundError:
+            log.debug(
+                'entries_update_meeting_not_found',
+                meeting_id=str(meeting_id),
+            )
+            raise _meeting_not_found(meeting_id) from None
+        except (MeetingCompletedError, PermissionDeniedError):
+            log.debug(
+                'entries_update_forbidden',
+                meeting_id=str(meeting_id),
+                target_user_id=str(target_user_id),
+            )
+            raise _forbidden() from None
+        except EntryNotFoundError:
+            log.debug(
+                'entries_update_entry_not_found',
+                meeting_id=str(meeting_id),
+                target_user_id=str(target_user_id),
+            )
+            raise _entry_not_found(meeting_id, target_user_id) from None
+        log.debug(
+            'entries_update_success',
+            meeting_id=str(meeting_id),
+            target_user_id=str(target_user_id),
+        )
+        return result
