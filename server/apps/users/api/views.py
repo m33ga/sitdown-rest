@@ -5,10 +5,12 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, final, override
 
 import structlog
+from django.conf import settings
 from dmr import Body, Controller, ResponseSpec, modify
 from dmr.exceptions import NotAuthenticatedError
 from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.response import APIError
+from dmr.security.jwt.token import JWToken
 from dmr.security.jwt.views import (
     ObtainTokensPayload,
     ObtainTokensResponse,
@@ -45,6 +47,59 @@ def _forbidden() -> APIError:
             message='You do not have permission to perform this action',
         ),
         status_code=HTTPStatus.FORBIDDEN,
+    )
+
+
+def _mint_enriched_token(
+    controller: ObtainTokensSyncController[
+        MsgspecSerializer,
+        ObtainTokensPayload,
+        ObtainTokensResponse,
+    ] | RefreshTokenSyncController[
+        MsgspecSerializer,
+        RefreshTokenPayload,
+        ObtainTokensResponse,
+    ],
+    *,
+    token_type: str,
+    expiration: dt.datetime,
+) -> str:
+    """Encode a JWT whose ``extras`` carries identity claims for the SPA.
+
+    dmr's stock ``create_jwt_token`` only embeds ``{'type': token_type}``
+    in ``extras``. The SPA reads ``payload.extras.role`` (and friends)
+    to drive its permission UI, so we mint the token ourselves with
+    role + email + name folded into ``extras``. ``JWToken.encode()``
+    serialises the dataclass via ``asdict`` so ``extras`` lands as a
+    nested object in the JWT payload (NOT flattened to top-level
+    claims).
+
+    Falls back to ``user.username`` for ``name`` when ``get_full_name()``
+    returns an empty string — mirrors ``UserMapper.to_payload``.
+    """
+    user = controller.request.user
+    full_name = user.get_full_name() or user.username
+    log.debug(
+        '[FIX] mint_enriched_token',
+        user_id=str(user.pk),
+        token_type=token_type,
+        role=user.role,
+    )
+    return JWToken(
+        sub=str(user.pk),
+        exp=expiration,
+        iss=controller.jwt_issuer,
+        aud=controller.jwt_audiences,
+        jti=controller.make_jwt_id(),
+        extras={
+            'type': token_type,
+            'role': user.role,
+            'email': user.email,
+            'name': full_name,
+        },
+    ).encode(
+        secret=controller.jwt_secret or settings.SECRET_KEY,
+        algorithm=controller.jwt_algorithm,
     )
 
 
@@ -118,8 +173,13 @@ class TokenCreate(
             user_id=str(self.request.user.pk),
         )
         now = dt.datetime.now(dt.UTC)
-        access_token = self.create_jwt_token(token_type='access')  # noqa: S106
-        refresh_token = self.create_jwt_token(
+        access_token = _mint_enriched_token(
+            self,
+            token_type='access',  # noqa: S106
+            expiration=now + self.jwt_expiration,
+        )
+        refresh_token = _mint_enriched_token(
+            self,
             token_type='refresh',  # noqa: S106
             expiration=now + self.jwt_refresh_expiration,
         )
@@ -196,8 +256,13 @@ class TokenRefresh(
             user_id=str(self.request.user.pk),
         )
         now = dt.datetime.now(dt.UTC)
-        access_token = self.create_jwt_token(token_type='access')  # noqa: S106
-        refresh_token = self.create_jwt_token(
+        access_token = _mint_enriched_token(
+            self,
+            token_type='access',  # noqa: S106
+            expiration=now + self.jwt_expiration,
+        )
+        refresh_token = _mint_enriched_token(
+            self,
             token_type='refresh',  # noqa: S106
             expiration=now + self.jwt_refresh_expiration,
         )

@@ -129,3 +129,60 @@ def test_token_create_access_and_refresh_have_distinct_types() -> None:
     assert refresh_decoded['extras']['type'] == 'refresh'
     # Both share the same subject (the authenticated user's pk).
     assert access_decoded['sub'] == refresh_decoded['sub']
+
+
+@pytest.mark.django_db
+def test_token_create_embeds_identity_claims_in_extras() -> None:
+    """Pin the JWT ``extras`` contract the SPA depends on.
+
+    ``payload.extras.{type, role, email, name}`` must be present so the
+    frontend's role-aware permission UI activates. The frontend logs
+    ``[auth] JWT has no recognizable role claim; UI permissions will be
+    locked down`` when these are missing — pin them here so a future
+    refactor of token minting can't silently drop the claims.
+    """
+    user = _make_user('eva', 'secret789', role='MANAGER')
+    user.first_name = 'Eva'
+    user.last_name = 'Stone'
+    user.save(update_fields=['first_name', 'last_name'])
+
+    response = _post(
+        Client(),
+        {'username': 'eva', 'password': 'secret789'},
+    )
+    assert response.status_code == 200
+    body = json.loads(response.content)
+
+    for token_field, expected_type in (
+        ('access_token', 'access'),
+        ('refresh_token', 'refresh'),
+    ):
+        decoded = jwt.decode(
+            body[token_field],
+            settings.SECRET_KEY,
+            algorithms=['HS256'],
+        )
+        extras = decoded['extras']
+        assert extras['type'] == expected_type
+        assert extras['role'] == 'MANAGER'
+        assert extras['email'] == 'eva@example.com'
+        assert extras['name'] == 'Eva Stone'
+
+
+@pytest.mark.django_db
+def test_token_create_name_falls_back_to_username() -> None:
+    """``extras.name`` uses ``username`` when first/last name are blank."""
+    _make_user('frank', 'secretabc', role='MEMBER')
+
+    response = _post(
+        Client(),
+        {'username': 'frank', 'password': 'secretabc'},
+    )
+
+    body = json.loads(response.content)
+    decoded = jwt.decode(
+        body['access_token'],
+        settings.SECRET_KEY,
+        algorithms=['HS256'],
+    )
+    assert decoded['extras']['name'] == 'frank'
