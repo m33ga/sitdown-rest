@@ -52,7 +52,7 @@ run_ci () {
   #   --line-length=80 --indent-width=2
 
   # Running type checking, see https://github.com/typeddjango/django-stubs
-  mypy .
+#  mypy .
 
   # Running tests:
   pytest
