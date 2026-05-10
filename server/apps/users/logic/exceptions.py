@@ -1,6 +1,0 @@
-class AuthenticationError(Exception):
-    ...
-
-
-class InvalidRefreshTokenError(Exception):
-    ...
