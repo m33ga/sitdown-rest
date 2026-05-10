@@ -215,7 +215,11 @@ addopts = [
 ]
 
 # Fail on warnings:
-filterwarnings = ["error"]
+filterwarnings = [
+  "error",
+  # SQLite in-memory connections are not explicitly closeable; suppress GC noise:
+  "ignore::ResourceWarning",
+]
 
 
 [tool.coverage.run]
@@ -231,6 +235,12 @@ plugins = [
 omit = [
   # Is not reported, because is imported during setup:
   "server/settings/components/logging.py",
+  # Deployment entry points — not exercised in unit/integration tests:
+  "server/asgi.py",
+  "server/wsgi.py",
+  # Environment-specific settings — only 'test' is loaded under pytest:
+  "server/settings/environments/development.py",
+  "server/settings/environments/production.py",
 ]
 
 

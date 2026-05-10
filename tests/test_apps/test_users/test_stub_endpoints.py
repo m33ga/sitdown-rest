@@ -24,3 +24,8 @@ def test_token_refresh_route_is_wired() -> None:
 def test_users_list_route_is_wired() -> None:
     """GET /api/v1/users/ must not be 404."""
     assert _resolves('/api/v1/users/')
+
+
+def test_nonexistent_route_not_wired() -> None:
+    """Unknown paths must not resolve."""
+    assert not _resolves('/api/v1/does-not-exist/')

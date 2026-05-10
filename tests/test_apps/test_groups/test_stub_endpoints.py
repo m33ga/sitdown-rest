@@ -39,3 +39,8 @@ def test_groups_members_collection_route_is_wired() -> None:
 def test_groups_members_detail_route_is_wired() -> None:
     """DELETE /api/v1/groups/{id}/members/{user_id}/ must not be 404."""
     assert _resolves(f'/api/v1/groups/{_GROUP_ID}/members/{_USER_ID}/')
+
+
+def test_nonexistent_route_not_wired() -> None:
+    """Unknown paths must not resolve."""
+    assert not _resolves('/api/v1/does-not-exist/')

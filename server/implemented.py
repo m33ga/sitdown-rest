@@ -6,14 +6,14 @@ from typing import Any
 import punq
 
 
-def _global_namespace() -> dict[str, Any]:
+def _global_namespace() -> dict[str, Any]:  # pragma: no cover
     from django.conf import LazySettings  # noqa: F401
     from django.core.cache import BaseCache  # noqa: F401
 
     return locals()  # noqa: WPS421
 
 
-def _create_injector[Thing](
+def _create_injector[Thing](  # pragma: no cover
     container: punq.Container,
     localns: dict[str, Any],
 ) -> Callable[[Thing], Thing]:
@@ -36,7 +36,16 @@ def _inject_django(container: punq.Container) -> None:
 
 
 def _inject_users(container: punq.Container) -> None:
-    pass  # Populated in: JWT auth milestone
+    from server.apps.users.infra.mappers import UserMapper
+    from server.apps.users.infra.repository import RefreshTokenRepository, UserRepository
+    from server.apps.users.logic.usecases.create_tokens import CreateTokensUseCase
+    from server.apps.users.logic.usecases.refresh_tokens import RefreshTokensUseCase
+
+    container.register(UserRepository, scope=punq.Scope.singleton)
+    container.register(RefreshTokenRepository, scope=punq.Scope.singleton)
+    container.register(UserMapper, scope=punq.Scope.singleton)
+    container.register(CreateTokensUseCase)
+    container.register(RefreshTokensUseCase)
 
 
 def _inject_groups(container: punq.Container) -> None:
