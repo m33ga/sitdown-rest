@@ -117,7 +117,6 @@ CORS_ALLOWED_ORIGINS.extend([
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'https://m33ga.github.io',
-    'https://m33ga.github.io/sitdown/',
 ])
 
 
