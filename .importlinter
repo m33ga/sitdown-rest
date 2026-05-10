@@ -27,7 +27,9 @@ name = All apps must be independent
 type = independence
 
 modules =
-  server.apps.*
+  server.apps.users
+  server.apps.groups
+  server.apps.meetings
 
 ignore_imports =
   # This is hack we have to use due to models relations
