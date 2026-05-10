@@ -44,7 +44,7 @@ class CreateMeetingUseCase:
         group_id: UUID,
         payload: MeetingCreatePayload,
     ) -> MeetingPayload:
-        """Run the use case; propagate ``MeetingDateConflictError`` for 409."""
+        """Run the create-meeting use case end-to-end."""
         log.debug(
             'create_meeting_called',
             user_id=str(user.pk),

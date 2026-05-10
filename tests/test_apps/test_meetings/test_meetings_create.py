@@ -104,8 +104,8 @@ def test_meetings_create_group_not_found(manager: User) -> None:
 
 
 @pytest.mark.django_db
-def test_meetings_create_duplicate_returns_409(manager: User) -> None:
-    """Creating two meetings with the same (group, date) returns 409."""
+def test_meetings_create_same_day_allowed(manager: User) -> None:
+    """Two meetings with the same (group, date) now coexist (no 409)."""
     group = Group.objects.create(name='g')
     Meeting.objects.create(
         group=group,
@@ -120,9 +120,14 @@ def test_meetings_create_duplicate_returns_409(manager: User) -> None:
         user=manager,
     )
 
-    assert response.status_code == 409
-    body = json.loads(response.content)
-    assert body['error'] == 'CONFLICT'
+    assert response.status_code == 201
+    assert (
+        Meeting.objects.filter(
+            group=group,
+            date=datetime.date(2026, 5, 1),
+        ).count()
+        == 2
+    )
 
 
 @pytest.mark.django_db

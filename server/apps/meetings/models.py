@@ -20,9 +20,6 @@ class Meeting(models.Model):
     date = models.DateField()
     completed = models.BooleanField(default=False)
 
-    class Meta:
-        unique_together = (('group', 'date'),)
-
     def __str__(self) -> str:
         """Return the meeting's title plus its date."""
         log.debug('meeting_str_called', meeting_id=str(self.pk))

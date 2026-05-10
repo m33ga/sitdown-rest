@@ -125,10 +125,7 @@ jobs:
           # Place files inside /srv/sitdown-rest on the droplet, mirroring
           # the repo layout the deploy script expects.
           target: /srv/sitdown-rest
-          source: |
-            docker-compose.deploy.yml
-            docker/caddy/Caddyfile
-            scripts/deploy.sh
+          source: docker-compose.deploy.yml,docker/caddy/Caddyfile,scripts/deploy.sh
 
       - name: Run deploy script over SSH
         uses: appleboy/ssh-action@v1.0.3

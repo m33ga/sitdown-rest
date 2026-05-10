@@ -163,8 +163,8 @@ def test_meetings_update_not_found(manager: User) -> None:
 
 
 @pytest.mark.django_db
-def test_meetings_update_date_collision_returns_409(manager: User) -> None:
-    """Date change colliding with another meeting in the group → 409."""
+def test_meetings_update_same_day_allowed(manager: User) -> None:
+    """Moving a meeting onto a date already used in the group is allowed."""
     group = Group.objects.create(name='g')
     Meeting.objects.create(
         group=group,
@@ -184,9 +184,14 @@ def test_meetings_update_date_collision_returns_409(manager: User) -> None:
         user=manager,
     )
 
-    assert response.status_code == 409
-    body = json.loads(response.content)
-    assert body['error'] == 'CONFLICT'
+    assert response.status_code == 200
+    assert (
+        Meeting.objects.filter(
+            group=group,
+            date=datetime.date(2026, 5, 1),
+        ).count()
+        == 2
+    )
 
 
 @pytest.mark.django_db

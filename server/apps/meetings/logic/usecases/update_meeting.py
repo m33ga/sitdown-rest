@@ -39,7 +39,7 @@ class UpdateMeetingUseCase:
         meeting_id: UUID,
         payload: MeetingUpdatePayload,
     ) -> MeetingPayload:
-        """Run the use case; propagates ``MeetingDateConflictError`` for 409."""
+        """Run the update-meeting use case end-to-end."""
         log.debug(
             'update_meeting_called',
             user_id=str(user.pk),

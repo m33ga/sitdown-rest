@@ -13,7 +13,6 @@ from server.apps.meetings.logic.exceptions import (
     EntryNotFoundError,
     GroupNotFoundError,
     MeetingCompletedError,
-    MeetingDateConflictError,
     MeetingNotFoundError,
     PermissionDeniedError,
 )
@@ -59,10 +58,6 @@ _NOT_FOUND_RESPONSE = ResponseSpec(
     return_type=ErrorResponse,
     status_code=HTTPStatus.NOT_FOUND,
 )
-_CONFLICT_RESPONSE = ResponseSpec(
-    return_type=ErrorResponse,
-    status_code=HTTPStatus.CONFLICT,
-)
 
 
 def _forbidden() -> APIError:
@@ -92,16 +87,6 @@ def _meeting_not_found(meeting_id: UUID) -> APIError:
             message=f"Meeting with id '{meeting_id}' does not exist",
         ),
         status_code=HTTPStatus.NOT_FOUND,
-    )
-
-
-def _date_conflict() -> APIError:
-    return APIError(
-        ErrorResponse(
-            error='CONFLICT',
-            message='A meeting for this group and date already exists',
-        ),
-        status_code=HTTPStatus.CONFLICT,
     )
 
 
@@ -188,11 +173,7 @@ class MeetingsCollection(
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=['meetings'],
-        extra_responses=[
-            _FORBIDDEN_RESPONSE,
-            _NOT_FOUND_RESPONSE,
-            _CONFLICT_RESPONSE,
-        ],
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def post(
         self,
@@ -221,13 +202,6 @@ class MeetingsCollection(
                 group_id=str(group_id),
             )
             raise _group_not_found(group_id) from None
-        except MeetingDateConflictError:
-            log.debug(
-                'meetings_create_date_conflict',
-                group_id=str(group_id),
-                date=str(parsed_body.date),
-            )
-            raise _date_conflict() from None
         log.debug(
             'meetings_create_success',
             meeting_id=str(result.id),
@@ -245,11 +219,7 @@ class MeetingsDetail(
     @modify(
         tags=['meetings'],
         status_code=HTTPStatus.OK,
-        extra_responses=[
-            _FORBIDDEN_RESPONSE,
-            _NOT_FOUND_RESPONSE,
-            _CONFLICT_RESPONSE,
-        ],
+        extra_responses=[_FORBIDDEN_RESPONSE, _NOT_FOUND_RESPONSE],
     )
     def patch(
         self,
@@ -277,12 +247,6 @@ class MeetingsDetail(
                 meeting_id=str(meeting_id),
             )
             raise _meeting_not_found(meeting_id) from None
-        except MeetingDateConflictError:
-            log.debug(
-                'meetings_update_date_conflict',
-                meeting_id=str(meeting_id),
-            )
-            raise _date_conflict() from None
         log.debug(
             'meetings_update_success',
             meeting_id=str(meeting_id),

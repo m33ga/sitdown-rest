@@ -43,13 +43,13 @@ def test_meeting_completed_default_false() -> None:
 
 
 @pytest.mark.django_db
-def test_meeting_unique_per_group_date() -> None:
-    """Two meetings in the same group on the same date raise IntegrityError."""
+def test_meeting_same_group_date_allowed() -> None:
+    """Two meetings in the same group on the same date now coexist."""
     group = _make_group('Gamma')
     day = datetime.date(2026, 5, 12)
     Meeting.objects.create(group=group, title='First', date=day)
-    with pytest.raises(IntegrityError):
-        Meeting.objects.create(group=group, title='Second', date=day)
+    Meeting.objects.create(group=group, title='Second', date=day)
+    assert Meeting.objects.filter(group=group, date=day).count() == 2
 
 
 @pytest.mark.django_db
