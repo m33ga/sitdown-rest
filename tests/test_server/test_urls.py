@@ -27,8 +27,15 @@ def test_admin_unauthorized(client: Client) -> None:
     assert response.status_code == HTTPStatus.FOUND
 
 
+@pytest.mark.ignore_template_errors
 def test_admin_authorized(admin_client: Client) -> None:
-    """Ensures that admin panel is accessible."""
+    """Ensures that admin panel is accessible.
+
+    ``ignore_template_errors`` because django-unfold's templates
+    intentionally use ``{% capture as is_fullwidth %}`` which references
+    the captured variable inside its own block — pytest-django's
+    ``--fail-on-template-vars`` flags it as undefined.
+    """
     response = admin_client.get(_ADMIN_URL)
 
     assert response.status_code == HTTPStatus.OK
@@ -41,8 +48,13 @@ def test_admin_docs_unauthorized(client: Client) -> None:
     assert response.status_code == HTTPStatus.FOUND
 
 
+@pytest.mark.ignore_template_errors
 def test_admin_docs_authorized(admin_client: Client) -> None:
-    """Ensures that admin panel docs are accessible."""
+    """Ensures that admin panel docs are accessible.
+
+    See ``test_admin_authorized`` for the ``ignore_template_errors``
+    rationale.
+    """
     response = admin_client.get(_ADMIN_DOC_URL)
 
     assert response.status_code == HTTPStatus.OK
