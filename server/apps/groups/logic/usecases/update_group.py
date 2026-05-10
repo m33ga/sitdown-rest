@@ -8,8 +8,6 @@ from uuid import UUID
 import attrs
 import structlog
 
-from server.apps.groups.infra.mappers import GroupMapper
-from server.apps.groups.infra.repository import GroupRepository
 from server.apps.groups.logic.exceptions import (
     GroupNotFoundError,
     PermissionDeniedError,
@@ -20,6 +18,8 @@ from server.apps.groups.logic.value_objects import (
 )
 
 if TYPE_CHECKING:
+    from server.apps.groups.infra.mappers import GroupMapper
+    from server.apps.groups.infra.repository import GroupRepository
     from server.apps.users.models import User
 
 log = structlog.get_logger()

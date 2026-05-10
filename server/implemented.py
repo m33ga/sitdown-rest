@@ -36,6 +36,10 @@ def _inject_django(container: punq.Container) -> None:
 
 
 def _inject_users(container: punq.Container) -> None:
+    # Use cases reference Repository / Mapper types only under TYPE_CHECKING,
+    # so punq must already have those types in its localns by the time
+    # get_type_hints() runs on the use case __init__. Keep the order:
+    # repos and mappers BEFORE any use case that consumes them.
     from server.apps.users.infra.mappers import UserMapper
     from server.apps.users.infra.repository import (
         RefreshTokenRepository,
@@ -56,6 +60,8 @@ def _inject_users(container: punq.Container) -> None:
 
 
 def _inject_groups(container: punq.Container) -> None:
+    # See note in _inject_users: repos/mappers must be registered before
+    # any use case that consumes them.
     from server.apps.groups.infra.mappers import GroupMapper
     from server.apps.groups.infra.repository import GroupRepository
     from server.apps.groups.logic.usecases.create_group import (

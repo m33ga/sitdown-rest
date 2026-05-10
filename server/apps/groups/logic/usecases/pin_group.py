@@ -8,13 +8,13 @@ from uuid import UUID
 import attrs
 import structlog
 
-from server.apps.groups.infra.repository import GroupRepository
 from server.apps.groups.logic.exceptions import (
     GroupNotFoundError,
     PermissionDeniedError,
 )
 
 if TYPE_CHECKING:
+    from server.apps.groups.infra.repository import GroupRepository
     from server.apps.users.models import User
 
 log = structlog.get_logger()
