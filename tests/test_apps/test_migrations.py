@@ -6,10 +6,10 @@ from django.db import connection
 
 @pytest.mark.django_db
 def test_users_table_exists() -> None:
-    """users_user and users_refreshtoken tables must exist."""
+    """users_user table must exist; users_refreshtoken was dropped."""
     tables = connection.introspection.table_names()
     assert 'users_user' in tables
-    assert 'users_refreshtoken' in tables
+    assert 'users_refreshtoken' not in tables
 
 
 @pytest.mark.django_db

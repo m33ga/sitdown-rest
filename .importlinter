@@ -32,8 +32,11 @@ modules =
   server.apps.meetings
 
 ignore_imports =
-  # This is hack we have to use due to models relations
-  server.apps.*.admin -> server.apps.*.models
+  # The DI composition root imports from every app; this is the
+  # intentional, documented exception to app independence. Without
+  # this, any app that uses HasContainer would transitively pull in
+  # every other registered app via `common.di -> implemented`.
+  server.implemented -> server.apps.**
 
 
 [importlinter:contract:common-module-is-independent]

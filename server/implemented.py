@@ -36,27 +36,12 @@ def _inject_django(container: punq.Container) -> None:
 
 
 def _inject_users(container: punq.Container) -> None:
-    # Use cases reference Repository / Mapper types only under TYPE_CHECKING,
-    # so punq must already have those types in its localns by the time
-    # get_type_hints() runs on the use case __init__. Keep the order:
-    # repos and mappers BEFORE any use case that consumes them.
-    from server.apps.users.infra.mappers import UserMapper
-    from server.apps.users.infra.repository import (
-        RefreshTokenRepository,
-        UserRepository,
-    )
-    from server.apps.users.logic.usecases.create_tokens import (
-        CreateTokensUseCase,
-    )
-    from server.apps.users.logic.usecases.refresh_tokens import (
-        RefreshTokensUseCase,
-    )
-
-    container.register(UserRepository, scope=punq.Scope.singleton)
-    container.register(RefreshTokenRepository, scope=punq.Scope.singleton)
-    container.register(UserMapper, scope=punq.Scope.singleton)
-    container.register(CreateTokensUseCase)
-    container.register(RefreshTokensUseCase)
+    # Token issuance and refresh now use dmr's pre-built controllers
+    # (ObtainTokensSyncController / RefreshTokenSyncController) which do
+    # not go through punq DI. The Users domain has no use cases requiring
+    # registration at this stage; this hook is left in place for future
+    # additions (e.g. the Users directory milestone).
+    pass
 
 
 def _inject_groups(container: punq.Container) -> None:

@@ -17,7 +17,7 @@ dependencies = [
   "django-health-check>=4.3.0,<5.0",
   "django-permissions-policy>=4.27,<5.0",
   "django-stubs-ext>=6.0,<7.0",
-  "django-modern-rest[msgspec,pydantic,attrs,jwt,openapi]>=0.7.0,<1.0",
+  "django-modern-rest[msgspec,pydantic,attrs,jwt,openapi]>=0.9.0,<1.0",
   "psycopg2-binary>=2.9,<3.0",
   "gunicorn>=25.0,<26.0",
   "python-decouple>=3.8,<4.0",
@@ -241,6 +241,10 @@ omit = [
   # Environment-specific settings — only 'test' is loaded under pytest:
   "server/settings/environments/development.py",
   "server/settings/environments/production.py",
+  # Schemathesis suite is currently `pytest.mark.skip`; tracked under the
+  # "OpenAPI schema completeness" milestone. Re-include once the suite
+  # passes and the marker is removed.
+  "tests/test_apps/test_schema.py",
 ]
 
 
