@@ -65,8 +65,7 @@ class ListMeetingsUseCase:
             per_page=per_page,
         )
         results = [
-            self._meeting_mapper.to_payload(meeting)
-            for meeting in meetings
+            self._meeting_mapper.to_payload(meeting) for meeting in meetings
         ]
         log.debug(
             'list_meetings_done',

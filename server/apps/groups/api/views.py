@@ -91,9 +91,7 @@ def _member_not_found(user_id: UUID) -> APIError:
     return APIError(
         ErrorResponse(
             error='NOT_FOUND',
-            message=(
-                f"User with id '{user_id}' is not a member of this group"
-            ),
+            message=(f"User with id '{user_id}' is not a member of this group"),
         ),
         status_code=HTTPStatus.NOT_FOUND,
     )

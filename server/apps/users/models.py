@@ -24,5 +24,6 @@ class User(AbstractUser):
     )
 
     def __str__(self) -> str:
+        """Return the user's full name; fall back to username when blank."""
         log.debug('user_str_called', user_id=str(self.id))
         return self.get_full_name() or self.username

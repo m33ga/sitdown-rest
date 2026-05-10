@@ -24,9 +24,11 @@ def _strip_debug_toolbar_middleware(settings: LazySettings) -> None:
     keeps the admin tests environment-agnostic.
     """
     settings.MIDDLEWARE = tuple(
-        middleware for middleware in settings.MIDDLEWARE
+        middleware
+        for middleware in settings.MIDDLEWARE
         if 'debug_toolbar' not in middleware
     )
+
 
 # Models that should have restricted (FORBIDDEN) admin add pages
 _RESTRICTED_ADMIN_ADD_MODELS = frozenset((
@@ -109,7 +111,7 @@ def test_admin_user_add_hashes_password(admin_client: Client) -> None:
     Pins the contract that ``UserAdmin`` keeps Django's ``UserCreationForm``
     flow (which calls ``set_password``) intact under the unfold theme.
     """
-    plaintext = 'fresh-secret-90210'  # noqa: S105
+    plaintext = 'fresh-secret-90210'
     # ``follow=False`` avoids the admin redirect's user lookup which
     # zeal flags as an N+1 pattern in development-mode test runs.
     response = admin_client.post(
@@ -122,7 +124,8 @@ def test_admin_user_add_hashes_password(admin_client: Client) -> None:
         },
     )
 
-    assert response.status_code == HTTPStatus.FOUND  # admin redirects on success
+    # Admin redirects to the changelist on successful create.
+    assert response.status_code == HTTPStatus.FOUND
     created = User.objects.get(username='admin-created')
     # The stored value MUST NOT equal the plaintext; ``check_password``
     # must verify it; and the value must look like a Django password

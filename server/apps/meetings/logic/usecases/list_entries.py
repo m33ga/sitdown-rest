@@ -61,8 +61,7 @@ class ListEntriesUseCase:
             raise PermissionDeniedError
         entries = self._meeting_repo.list_entries_for_meeting(meeting)
         results = [
-            self._member_entry_mapper.to_payload(entry)
-            for entry in entries
+            self._member_entry_mapper.to_payload(entry) for entry in entries
         ]
         log.debug(
             'list_entries_done',

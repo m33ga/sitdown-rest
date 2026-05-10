@@ -69,10 +69,14 @@ class MeetingRepository:
         if role == 'MANAGER':
             log.debug('meeting_repo_has_access_manager')
             return True
-        result = _project_member_model().objects.filter(
-            user=user,
-            group=group,
-        ).exists()
+        result = (
+            _project_member_model()
+            .objects.filter(
+                user=user,
+                group=group,
+            )
+            .exists()
+        )
         log.debug('meeting_repo_has_access_result', result=result)
         return result
 
@@ -92,7 +96,7 @@ class MeetingRepository:
         qs = Meeting.objects.filter(group=group).order_by('-date', '-id')
         total = qs.count()
         offset = (page - 1) * per_page
-        results = list(qs[offset:offset + per_page])
+        results = list(qs[offset : offset + per_page])
         log.debug(
             'meeting_repo_list_done',
             group_id=str(group.id),
@@ -157,9 +161,9 @@ class MeetingRepository:
                 )
                 raise MeetingDateConflictError from None
             members = list(
-                group.members
-                .exclude(user__role='GUEST')
-                .select_related('user'),
+                group.members.exclude(user__role='GUEST').select_related(
+                    'user'
+                ),
             )
             log.debug(
                 'meeting_repo_create_resolved_members',

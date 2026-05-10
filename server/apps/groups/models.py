@@ -15,12 +15,16 @@ class Group(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
+        """Return the group's display name."""
         log.debug('group_str_called', group_id=str(self.pk))
         return self.name
 
 
 class UserPinnedGroup(models.Model):
-    """Records which groups a user has pinned (many-to-many via explicit table)."""
+    """Records which groups a user has pinned.
+
+    Many-to-many via an explicit through table.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(

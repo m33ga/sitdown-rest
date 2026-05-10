@@ -41,9 +41,11 @@ class UserAdmin(UnfoldModelAdmin, DjangoUserAdmin):
     # fieldsets so it's editable on both the change and add screens.
     # Django's UserAdmin keeps ownership of password hashing — adding a
     # field here does NOT bypass set_password.
-    fieldsets = DjangoUserAdmin.fieldsets + (
+    fieldsets = (
+        *DjangoUserAdmin.fieldsets,
         ('Sitdown', {'fields': ('role',)}),
     )
-    add_fieldsets = DjangoUserAdmin.add_fieldsets + (
+    add_fieldsets = (
+        *DjangoUserAdmin.add_fieldsets,
         ('Sitdown', {'fields': ('role',)}),
     )

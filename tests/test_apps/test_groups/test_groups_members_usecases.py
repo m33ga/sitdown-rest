@@ -200,10 +200,13 @@ def test_repository_get_member_returns_none_when_missing() -> None:
     """get_member returns None when (group, user_id) has no row."""
     repo = GroupRepository()
     group = Group.objects.create(name='g')
-    assert repo.get_member(
-        group,
-        uuid.UUID('00000000-0000-0000-0000-000000000444'),
-    ) is None
+    assert (
+        repo.get_member(
+            group,
+            uuid.UUID('00000000-0000-0000-0000-000000000444'),
+        )
+        is None
+    )
 
 
 @pytest.mark.django_db

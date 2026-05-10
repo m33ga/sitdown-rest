@@ -56,17 +56,22 @@ class GroupRepository:
             qs = qs.filter(members__user=user)
         if search:
             qs = qs.filter(name__icontains=search)
-        qs = qs.annotate(
-            is_pinned=Exists(
-                UserPinnedGroup.objects.filter(
-                    user=user,
-                    group=OuterRef('pk'),
+        qs = (
+            qs
+            .annotate(
+                is_pinned=Exists(
+                    UserPinnedGroup.objects.filter(
+                        user=user,
+                        group=OuterRef('pk'),
+                    ),
                 ),
-            ),
-        ).order_by('-is_pinned', '-created_at').distinct()
+            )
+            .order_by('-is_pinned', '-created_at')
+            .distinct()
+        )
         total = qs.count()
         offset = (page - 1) * per_page
-        results = list(qs[offset:offset + per_page])
+        results = list(qs[offset : offset + per_page])
         log.debug('group_repo_list_done', total=total, returned=len(results))
         return results, total
 
@@ -168,10 +173,8 @@ class GroupRepository:
             user_id=str(user_id),
         )
         try:
-            member = (
-                ProjectMember.objects
-                .select_related('user')
-                .get(group=group, user_id=user_id)
+            member = ProjectMember.objects.select_related('user').get(
+                group=group, user_id=user_id
             )
         except ProjectMember.DoesNotExist:
             log.debug(

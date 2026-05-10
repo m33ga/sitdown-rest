@@ -142,6 +142,7 @@ ignore = [
   "D401",
   "D404",
   "D405",
+  "COM812",  # missing trailing comma conflicts with `ruff format`
   "ISC001",  # implicit string concat conflicts with `ruff format`
   "ISC003",  # prefer explicit string concat over implicit concat
   "PLR09",   # we have our own complexity rules
@@ -161,7 +162,10 @@ pydocstyle.convention = "google"
 "server/apps/*/migrations/*.py" = ["D101", "E501", "RUF012"]
 "server/common/typing/*.py" = ["F401"]
 "server/implemented.py" = ["PLC0415", "D103"]
-"tests/*.py" = ["S101"]
+# Tests use throwaway passwords, may assert on blank-string state
+# directly, and use try/except-return patterns in URL-resolution
+# helpers. None of those styles are issues in test code.
+"tests/*.py" = ["S101", "S106", "PLC1901", "TRY300"]
 
 
 [tool.pytest.ini_options]

@@ -17,7 +17,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Group',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    'id',
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
                 ('name', models.CharField(max_length=255)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
@@ -25,33 +33,61 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserPinnedGroup',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('user', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='pinned_groups',
-                    to=settings.AUTH_USER_MODEL,
-                )),
-                ('group', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='pinned_by',
-                    to='groups.group',
-                )),
+                (
+                    'id',
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='pinned_groups',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    'group',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='pinned_by',
+                        to='groups.group',
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
             name='ProjectMember',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('user', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='project_memberships',
-                    to=settings.AUTH_USER_MODEL,
-                )),
-                ('group', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='members',
-                    to='groups.group',
-                )),
+                (
+                    'id',
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='project_memberships',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    'group',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='members',
+                        to='groups.group',
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(

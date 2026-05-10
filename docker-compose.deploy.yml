@@ -1,0 +1,91 @@
+---
+
+# Deploy compose file shipped to the Digital Ocean droplet by the
+# GitHub Actions deploy workflow. The droplet pulls images from GHCR
+# and runs db + web (gunicorn) + caddy (auto-HTTPS reverse proxy).
+#
+# Usage on the droplet (handled automatically by scripts/deploy.sh):
+#   docker compose -f docker-compose.deploy.yml pull
+#   docker compose -f docker-compose.deploy.yml up -d
+#
+# Environment is loaded from ``./config/.env`` which the deploy step
+# writes from the ``APP_ENV`` GitHub Actions variable.
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - postgres-net
+    env_file: ./config/.env
+    healthcheck:
+      test: pg_isready
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 5s
+
+  web:
+    # ``IMAGE_TAG`` is interpolated from the environment when ``docker
+    # compose`` runs. Defaults to ``latest`` when unset, so day-to-day
+    # deploys just track main. To roll back: set IMAGE_TAG=sha-<short>
+    # in config/.env on the droplet, then ``compose pull && up -d``.
+    image: ghcr.io/m33ga/sitdown-rest:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    command: bash ./docker/django/gunicorn.sh
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - web-net
+      - postgres-net
+      - proxy-net
+    env_file: ./config/.env
+    environment:
+      DJANGO_ENV: production
+      DJANGO_DATABASE_HOST: db
+    volumes:
+      - django-static:/var/www/django/static
+      - django-media:/var/www/django/media
+      - django-locale:/code/locale
+    expose:
+      - "8000"
+    healthcheck:
+      test: /bin/sh /code/docker/django/healthcheck.sh
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  caddy:
+    image: ghcr.io/m33ga/sitdown-rest-caddy:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: ./config/.env
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy-config:/config
+      - caddy-data:/data
+      - django-static:/var/www/django/static
+      - django-media:/var/www/django/media
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    networks:
+      - proxy-net
+
+networks:
+  postgres-net:
+  web-net:
+  proxy-net:
+
+volumes:
+  postgres-data:
+  django-static:
+  django-media:
+  django-locale:
+  caddy-config:
+  caddy-data:

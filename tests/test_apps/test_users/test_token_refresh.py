@@ -139,7 +139,7 @@ def test_token_refresh_access_token_rejected() -> None:
     access_only = _encode_token(
         sub=str(user.pk),
         expires_at=timezone.now() + dt.timedelta(seconds=60),
-        token_type='access',  # noqa: S106
+        token_type='access',
     )
 
     client = Client()
