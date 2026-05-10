@@ -625,6 +625,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-unfold"
+version = "0.92.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2a/f7/789d25724f9466a6b0d61a5d88ae34d2dd96623ef478a2490330cb4a2aa5/django_unfold-0.92.0.tar.gz", hash = "sha256:cf3e2b1350899fc4380f5870eef25042993d10aa59544f92d4c9986854c5c048", size = 1122249, upload-time = "2026-05-01T07:49:20.88Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/36/5546921b5217fe60a3deb2176ad778988dd9733ff9d2adc87534daa7b539/django_unfold-0.92.0-py3-none-any.whl", hash = "sha256:7f57f7db6208faa2eb108586b0d7c2dd03ac37eb45d5d79549f35594c6b24760", size = 1246206, upload-time = "2026-05-01T07:49:19.081Z" },
+]
+
+[[package]]
 name = "django-zeal"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2087,6 +2099,7 @@ dependencies = [
     { name = "django-permissions-policy" },
     { name = "django-split-settings" },
     { name = "django-stubs-ext" },
+    { name = "django-unfold" },
     { name = "gunicorn" },
     { name = "psycopg2-binary" },
     { name = "punq" },
@@ -2145,6 +2158,7 @@ requires-dist = [
     { name = "django-permissions-policy", specifier = ">=4.27,<5.0" },
     { name = "django-split-settings", specifier = ">=1.3,<2.0" },
     { name = "django-stubs-ext", specifier = ">=6.0,<7.0" },
+    { name = "django-unfold", specifier = ">=0.71,<1.0" },
     { name = "gunicorn", specifier = ">=25.0,<26.0" },
     { name = "psycopg2-binary", specifier = ">=2.9,<3.0" },
     { name = "punq", specifier = ">=0.7,<1.0" },
