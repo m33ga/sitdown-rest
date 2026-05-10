@@ -51,5 +51,6 @@ DMR_SETTINGS: Any = {
 
 CORS_ALLOWED_ORIGINS = [
     f'https://{config("DOMAIN_NAME")}',
+    'https://m33ga.github.io',
 ]
 CORS_ALLOW_ALL_ORIGINS = False
