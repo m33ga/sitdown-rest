@@ -9,6 +9,7 @@ To change settings file:
 `DJANGO_ENV=production python manage.py runserver`
 """
 
+import sys as _sys
 from os import environ
 
 import django_stubs_ext
@@ -20,8 +21,6 @@ django_stubs_ext.monkeypatch()
 
 # Managing environment via `DJANGO_ENV` variable:
 # When running under pytest, default to 'test' so SQLite is used automatically.
-import sys as _sys
-
 _default_env = 'test' if 'pytest' in _sys.modules else 'development'
 environ.setdefault('DJANGO_ENV', _default_env)
 _ENV = environ['DJANGO_ENV']

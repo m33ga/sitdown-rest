@@ -52,6 +52,14 @@ def test_user_str_without_name() -> None:
 @pytest.mark.django_db
 def test_user_email_unique() -> None:
     """Two users with the same email raise IntegrityError."""
-    User.objects.create_user(username='user1', email='dupe@example.com', password='x')
+    User.objects.create_user(
+        username='user1',
+        email='dupe@example.com',
+        password='x',
+    )
     with pytest.raises(IntegrityError):
-        User.objects.create_user(username='user2', email='dupe@example.com', password='x')
+        User.objects.create_user(
+            username='user2',
+            email='dupe@example.com',
+            password='x',
+        )

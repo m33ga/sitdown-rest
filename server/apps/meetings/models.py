@@ -24,12 +24,17 @@ class Meeting(models.Model):
         unique_together = (('group', 'date'),)
 
     def __str__(self) -> str:
+        """Return the meeting's title plus its date."""
         log.debug('meeting_str_called', meeting_id=str(self.pk))
         return f'{self.title} ({self.date})'
 
 
 class MemberEntry(models.Model):
-    """Per-member standup entry inside a meeting (five structured text sections)."""
+    """Per-member standup entry inside a meeting.
+
+    Holds the five structured text sections (promised / done / will_do /
+    discussion / notes) one user filled out for one meeting.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     meeting = models.ForeignKey(

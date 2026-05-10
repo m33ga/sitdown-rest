@@ -7,7 +7,11 @@ app_name = 'groups'
 router: Router = Router(
     '',
     [
-        path('groups/', views.GroupsCollection.as_view(), name='groups_collection'),
+        path(
+            'groups/',
+            views.GroupsCollection.as_view(),
+            name='groups_collection',
+        ),
         path(
             'groups/<uuid:id>/',
             views.GroupsDetail.as_view(),

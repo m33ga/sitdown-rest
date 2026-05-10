@@ -161,7 +161,10 @@ pydocstyle.convention = "google"
 "server/apps/*/migrations/*.py" = ["D101", "E501", "RUF012"]
 "server/common/typing/*.py" = ["F401"]
 "server/implemented.py" = ["PLC0415", "D103"]
-"tests/*.py" = ["S101"]
+# Tests use throwaway passwords, may assert on blank-string state
+# directly, and use try/except-return patterns in URL-resolution
+# helpers. None of those styles are issues in test code.
+"tests/*.py" = ["S101", "S106", "PLC1901", "TRY300"]
 
 
 [tool.pytest.ini_options]

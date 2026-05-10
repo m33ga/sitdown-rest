@@ -30,7 +30,10 @@ DMR_SETTINGS: Any = {
             Tag(name='groups', description='Project group management'),
             Tag(name='members', description='Project membership'),
             Tag(name='meetings', description='Standup meeting events'),
-            Tag(name='entries', description='Per-member standup tabs inside a meeting'),
+            Tag(
+                name='entries',
+                description='Per-member standup tabs inside a meeting',
+            ),
             Tag(name='users', description='Organisation user directory'),
         ],
     ),

@@ -1,4 +1,7 @@
-"""Test environment: use in-memory SQLite so tests run without a Postgres server."""
+"""Test environment.
+
+Uses in-memory SQLite so tests run without a Postgres server.
+"""
 
 SECRET_KEY = 'HTdAbOTxguNuCXhASPKl2sRAy0Bp1E0RZxMAlKUcHCJIDeGxJJ'  # noqa: S105
 
