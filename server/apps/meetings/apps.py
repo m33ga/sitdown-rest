@@ -17,7 +17,10 @@ class MeetingsConfig(AppConfig):
         Importing it via ``apps.get_model`` (instead of a Python import)
         is what keeps the apps-independence import-linter contract green.
         """
-        from server.apps.meetings.signals import (
+        # Django convention: import receivers lazily inside ready() to
+        # avoid AppRegistryNotReady on module import; ruff PLC0415 is the
+        # cost of that convention.
+        from server.apps.meetings.signals import (  # noqa: PLC0415
             create_entries_for_new_member,
         )
 

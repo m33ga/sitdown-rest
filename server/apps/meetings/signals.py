@@ -25,6 +25,7 @@ log = structlog.get_logger()
 
 def create_entries_for_new_member(
     sender: type[ProjectMember],
+    *,
     instance: ProjectMember,
     created: bool,
     **kwargs: object,
