@@ -98,7 +98,7 @@ class TokenCreate(
         parsed_body: Body[ObtainTokensPayload],
     ) -> ObtainTokensResponse:
         """Issue tokens (delegates to the inherited login flow)."""
-        log.debug('[FIX] token_create_post tags=auth')
+        log.debug('token_create_post')
         return self.login(parsed_body)
 
     @override
@@ -176,7 +176,7 @@ class TokenRefresh(
         parsed_body: Body[RefreshTokenPayload],
     ) -> ObtainTokensResponse:
         """Refresh tokens (delegates to the inherited refresh flow)."""
-        log.debug('[FIX] token_refresh_post tags=auth')
+        log.debug('token_refresh_post')
         return self.refresh(parsed_body)
 
     @override
@@ -236,7 +236,12 @@ class UsersList(
     @modify(
         status_code=HTTPStatus.OK,
         tags=['users'],
-        validate_responses=False,
+        extra_responses=[
+            ResponseSpec(
+                return_type=ErrorResponse,
+                status_code=HTTPStatus.FORBIDDEN,
+            ),
+        ],
     )
     def get(self) -> PaginatedUsersPayload:
         """Return a paginated, searchable list of org users."""
