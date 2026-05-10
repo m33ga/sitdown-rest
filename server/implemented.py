@@ -49,7 +49,23 @@ def _inject_users(container: punq.Container) -> None:
 
 
 def _inject_groups(container: punq.Container) -> None:
-    pass  # Populated in: Groups milestone
+    from server.apps.groups.infra.mappers import GroupMapper
+    from server.apps.groups.infra.repository import GroupRepository
+    from server.apps.groups.logic.usecases.create_group import CreateGroupUseCase
+    from server.apps.groups.logic.usecases.delete_group import DeleteGroupUseCase
+    from server.apps.groups.logic.usecases.list_groups import ListGroupsUseCase
+    from server.apps.groups.logic.usecases.pin_group import PinGroupUseCase
+    from server.apps.groups.logic.usecases.unpin_group import UnpinGroupUseCase
+    from server.apps.groups.logic.usecases.update_group import UpdateGroupUseCase
+
+    container.register(GroupRepository, scope=punq.Scope.singleton)
+    container.register(GroupMapper, scope=punq.Scope.singleton)
+    container.register(ListGroupsUseCase)
+    container.register(CreateGroupUseCase)
+    container.register(UpdateGroupUseCase)
+    container.register(DeleteGroupUseCase)
+    container.register(PinGroupUseCase)
+    container.register(UnpinGroupUseCase)
 
 
 def _inject_meetings(container: punq.Container) -> None:
