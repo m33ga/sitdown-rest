@@ -10,17 +10,15 @@ from dmr.exceptions import NotAuthenticatedError
 from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.security.jwt.views import (
     ObtainTokensPayload,
+    ObtainTokensResponse,
     ObtainTokensSyncController,
+    RefreshTokenPayload,
     RefreshTokenSyncController,
 )
 
 from server.apps.users.logic.value_objects import (
     ErrorResponse,
     PaginatedUsersPayload,
-    TokenCreatePayload,
-    TokenRefreshPayload,
-    TokenRefreshResponse,
-    TokenResponse,
 )
 from server.common.di import HasContainer
 
@@ -38,8 +36,8 @@ _REFRESH_EXPIRY = dt.timedelta(days=30)
 class TokenCreate(
     ObtainTokensSyncController[
         MsgspecSerializer,
-        TokenCreatePayload,
-        TokenResponse,
+        ObtainTokensPayload,
+        ObtainTokensResponse,
     ],
 ):
     """POST /token — issue an access/refresh token pair."""
@@ -59,17 +57,14 @@ class TokenCreate(
     @override
     def convert_auth_payload(
         self,
-        payload: TokenCreatePayload,
+        payload: ObtainTokensPayload,
     ) -> ObtainTokensPayload:
-        """Translate the parsed body into Django authenticate() kwargs."""
+        """Pass-through: payload shape already matches authenticate() kwargs."""
         log.debug('token_create_convert_payload')
-        return {
-            'username': payload.username,
-            'password': payload.password,
-        }
+        return payload
 
     @override
-    def make_api_response(self) -> TokenResponse:
+    def make_api_response(self) -> ObtainTokensResponse:
         """Issue the access + refresh JWT pair and return the response."""
         log.debug(
             'token_create_make_response',
@@ -81,7 +76,7 @@ class TokenCreate(
             token_type='refresh',  # noqa: S106
             expiration=now + self.jwt_refresh_expiration,
         )
-        return TokenResponse(
+        return ObtainTokensResponse(
             access_token=access_token,
             refresh_token=refresh_token,
         )
@@ -110,8 +105,8 @@ class TokenCreate(
 class TokenRefresh(
     RefreshTokenSyncController[
         MsgspecSerializer,
-        TokenRefreshPayload,
-        TokenRefreshResponse,
+        RefreshTokenPayload,
+        ObtainTokensResponse,
     ],
 ):
     """POST /token/refresh — exchange a refresh JWT for a new pair."""
@@ -129,14 +124,14 @@ class TokenRefresh(
     @override
     def convert_refresh_payload(
         self,
-        payload: TokenRefreshPayload,
+        payload: RefreshTokenPayload,
     ) -> str:
         """Extract the refresh token string from the parsed body."""
         log.debug('token_refresh_convert_payload')
-        return payload.refresh_token
+        return payload['refresh_token']
 
     @override
-    def make_api_response(self) -> TokenRefreshResponse:
+    def make_api_response(self) -> ObtainTokensResponse:
         """Mint a new access + refresh JWT pair."""
         log.debug(
             'token_refresh_make_response',
@@ -148,7 +143,7 @@ class TokenRefresh(
             token_type='refresh',  # noqa: S106
             expiration=now + self.jwt_refresh_expiration,
         )
-        return TokenRefreshResponse(
+        return ObtainTokensResponse(
             access_token=access_token,
             refresh_token=refresh_token,
         )
