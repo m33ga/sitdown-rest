@@ -12,6 +12,10 @@ import os
 os.environ['DJANGO_ENV'] = 'test'
 
 pytest_plugins = [
-    # Should be the first custom one:
-    'plugins.django_settings',
+    # Should be the first custom one. Use the full dotted path now
+    # that ``tests/`` is a package (was importable bare as
+    # ``plugins.django_settings`` before, but the conftest-collision
+    # fix added ``tests/__init__.py`` which moved this under the
+    # ``tests.`` namespace).
+    'tests.plugins.django_settings',
 ]
