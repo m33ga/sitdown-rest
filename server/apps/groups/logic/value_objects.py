@@ -57,3 +57,10 @@ class AddMemberPayload(msgspec.Struct, frozen=True):
     """Request payload for POST /groups/{id}/members."""
 
     user_id: uuid.UUID
+
+
+class ErrorResponse(msgspec.Struct, frozen=True):
+    """Standard error envelope returned for 4xx responses."""
+
+    error: str
+    message: str
