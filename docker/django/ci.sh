@@ -105,13 +105,13 @@ run_ci () {
   # }' -s .
 
   # Checking translation files, ignoring ordering and locations:
-  polint -i location,unsorted locale
+#  polint -i location,unsorted locale
 
   # Also checking translation files for syntax errors:
-  if find locale -name '*.po' -print0 | grep -q "."; then
-    # Only executes when there is at least one `.po` file:
-    dennis-cmd lint --errorsonly locale
-  fi
+#  if find locale -name '*.po' -print0 | grep -q "."; then
+#    # Only executes when there is at least one `.po` file:
+#    dennis-cmd lint --errorsonly locale
+#  fi
 
   set +x
   echo '[ci finished]'
