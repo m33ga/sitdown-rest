@@ -47,8 +47,12 @@ def _inject_users(container: punq.Container) -> None:
 def _inject_groups(container: punq.Container) -> None:
     # See note in _inject_users: repos/mappers must be registered before
     # any use case that consumes them.
-    from server.apps.groups.infra.mappers import GroupMapper
+    from server.apps.groups.infra.mappers import (
+        GroupMapper,
+        ProjectMemberMapper,
+    )
     from server.apps.groups.infra.repository import GroupRepository
+    from server.apps.groups.logic.usecases.add_member import AddMemberUseCase
     from server.apps.groups.logic.usecases.create_group import (
         CreateGroupUseCase,
     )
@@ -56,7 +60,13 @@ def _inject_groups(container: punq.Container) -> None:
         DeleteGroupUseCase,
     )
     from server.apps.groups.logic.usecases.list_groups import ListGroupsUseCase
+    from server.apps.groups.logic.usecases.list_members import (
+        ListMembersUseCase,
+    )
     from server.apps.groups.logic.usecases.pin_group import PinGroupUseCase
+    from server.apps.groups.logic.usecases.remove_member import (
+        RemoveMemberUseCase,
+    )
     from server.apps.groups.logic.usecases.unpin_group import UnpinGroupUseCase
     from server.apps.groups.logic.usecases.update_group import (
         UpdateGroupUseCase,
@@ -64,12 +74,16 @@ def _inject_groups(container: punq.Container) -> None:
 
     container.register(GroupRepository, scope=punq.Scope.singleton)
     container.register(GroupMapper, scope=punq.Scope.singleton)
+    container.register(ProjectMemberMapper, scope=punq.Scope.singleton)
     container.register(ListGroupsUseCase)
     container.register(CreateGroupUseCase)
     container.register(UpdateGroupUseCase)
     container.register(DeleteGroupUseCase)
     container.register(PinGroupUseCase)
     container.register(UnpinGroupUseCase)
+    container.register(ListMembersUseCase)
+    container.register(AddMemberUseCase)
+    container.register(RemoveMemberUseCase)
 
 
 def _inject_meetings(container: punq.Container) -> None:

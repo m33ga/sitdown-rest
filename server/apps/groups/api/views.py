@@ -11,12 +11,20 @@ from dmr.response import APIError
 
 from server.apps.groups.logic.exceptions import (
     GroupNotFoundError,
+    MemberAlreadyExistsError,
+    MemberNotFoundError,
     PermissionDeniedError,
+    UserNotFoundError,
 )
+from server.apps.groups.logic.usecases.add_member import AddMemberUseCase
 from server.apps.groups.logic.usecases.create_group import CreateGroupUseCase
 from server.apps.groups.logic.usecases.delete_group import DeleteGroupUseCase
 from server.apps.groups.logic.usecases.list_groups import ListGroupsUseCase
+from server.apps.groups.logic.usecases.list_members import ListMembersUseCase
 from server.apps.groups.logic.usecases.pin_group import PinGroupUseCase
+from server.apps.groups.logic.usecases.remove_member import (
+    RemoveMemberUseCase,
+)
 from server.apps.groups.logic.usecases.unpin_group import UnpinGroupUseCase
 from server.apps.groups.logic.usecases.update_group import UpdateGroupUseCase
 from server.apps.groups.logic.value_objects import (
@@ -53,6 +61,38 @@ def _not_found(group_id: UUID) -> APIError:
             message=f"Group with id '{group_id}' does not exist",
         ),
         status_code=HTTPStatus.NOT_FOUND,
+    )
+
+
+def _user_not_found(user_id: UUID) -> APIError:
+    return APIError(
+        ErrorResponse(
+            error='NOT_FOUND',
+            message=f"User with id '{user_id}' does not exist",
+        ),
+        status_code=HTTPStatus.NOT_FOUND,
+    )
+
+
+def _member_not_found(user_id: UUID) -> APIError:
+    return APIError(
+        ErrorResponse(
+            error='NOT_FOUND',
+            message=(
+                f"User with id '{user_id}' is not a member of this group"
+            ),
+        ),
+        status_code=HTTPStatus.NOT_FOUND,
+    )
+
+
+def _conflict() -> APIError:
+    return APIError(
+        ErrorResponse(
+            error='CONFLICT',
+            message='User is already a member of this group',
+        ),
+        status_code=HTTPStatus.CONFLICT,
     )
 
 
@@ -244,18 +284,79 @@ class GroupsMembersCollection(
 ):
     """GET /groups/{id}/members and POST /groups/{id}/members."""
 
-    @modify(tags=['members'])
+    @modify(
+        tags=['members'],
+        status_code=HTTPStatus.OK,
+        validate_responses=False,
+    )
     def get(self) -> list[ProjectMemberRecordPayload]:
-        """List all project members."""
-        raise NotImplementedError
+        """List all project members of a group."""
+        group_id: UUID = self.kwargs['id']
+        log.debug('members_list_called', group_id=str(group_id))
+        use_case = self.resolve(ListMembersUseCase)
+        try:
+            result = use_case(user=self.request.user, group_id=group_id)
+        except PermissionDeniedError:
+            log.debug('members_list_forbidden', group_id=str(group_id))
+            raise _forbidden() from None
+        except GroupNotFoundError:
+            log.debug('members_list_not_found', group_id=str(group_id))
+            raise _not_found(group_id) from None
+        log.debug(
+            'members_list_done',
+            group_id=str(group_id),
+            count=len(result),
+        )
+        return result
 
-    @modify(status_code=HTTPStatus.CREATED, tags=['members'])
+    @modify(
+        status_code=HTTPStatus.CREATED,
+        tags=['members'],
+        validate_responses=False,
+    )
     def post(
         self,
         parsed_body: Body[AddMemberPayload],
     ) -> ProjectMemberRecordPayload:
         """Add a user to the project (MANAGER only)."""
-        raise NotImplementedError
+        group_id: UUID = self.kwargs['id']
+        log.debug(
+            'members_add_called',
+            group_id=str(group_id),
+            target_user_id=str(parsed_body.user_id),
+        )
+        use_case = self.resolve(AddMemberUseCase)
+        try:
+            result = use_case(
+                user=self.request.user,
+                group_id=group_id,
+                payload=parsed_body,
+            )
+        except PermissionDeniedError:
+            log.debug('members_add_forbidden', group_id=str(group_id))
+            raise _forbidden() from None
+        except GroupNotFoundError:
+            log.debug('members_add_group_not_found', group_id=str(group_id))
+            raise _not_found(group_id) from None
+        except UserNotFoundError:
+            log.debug(
+                'members_add_user_not_found',
+                target_user_id=str(parsed_body.user_id),
+            )
+            raise _user_not_found(parsed_body.user_id) from None
+        except MemberAlreadyExistsError:
+            log.debug(
+                'members_add_duplicate',
+                group_id=str(group_id),
+                target_user_id=str(parsed_body.user_id),
+            )
+            raise _conflict() from None
+        log.debug(
+            'members_add_success',
+            group_id=str(group_id),
+            target_user_id=str(parsed_body.user_id),
+        )
+        return result
 
 
 @final
@@ -265,7 +366,44 @@ class GroupsMembersDetail(
 ):
     """DELETE /groups/{id}/members/{user_id}."""
 
-    @modify(status_code=HTTPStatus.NO_CONTENT, tags=['members'])
+    @modify(
+        status_code=HTTPStatus.NO_CONTENT,
+        tags=['members'],
+        validate_responses=False,
+    )
     def delete(self) -> None:
         """Remove a user from the project (MANAGER only)."""
-        raise NotImplementedError
+        group_id: UUID = self.kwargs['id']
+        target_user_id: UUID = self.kwargs['user_id']
+        log.debug(
+            'members_remove_called',
+            group_id=str(group_id),
+            target_user_id=str(target_user_id),
+        )
+        use_case = self.resolve(RemoveMemberUseCase)
+        try:
+            use_case(
+                user=self.request.user,
+                group_id=group_id,
+                target_user_id=target_user_id,
+            )
+        except PermissionDeniedError:
+            log.debug('members_remove_forbidden', group_id=str(group_id))
+            raise _forbidden() from None
+        except GroupNotFoundError:
+            log.debug(
+                'members_remove_group_not_found',
+                group_id=str(group_id),
+            )
+            raise _not_found(group_id) from None
+        except MemberNotFoundError:
+            log.debug(
+                'members_remove_user_not_a_member',
+                target_user_id=str(target_user_id),
+            )
+            raise _member_not_found(target_user_id) from None
+        log.debug(
+            'members_remove_success',
+            group_id=str(group_id),
+            target_user_id=str(target_user_id),
+        )
