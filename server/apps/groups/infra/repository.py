@@ -13,8 +13,15 @@ from uuid import UUID
 
 import attrs
 import structlog
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.db.models import Exists, OuterRef
 
+from server.apps.groups.logic.exceptions import (
+    MemberAlreadyExistsError,
+    MemberNotFoundError,
+    UserNotFoundError,
+)
 from server.apps.groups.models import Group, ProjectMember, UserPinnedGroup
 
 if TYPE_CHECKING:
@@ -128,3 +135,119 @@ class GroupRepository:
         ).exists()
         log.debug('group_repo_is_member_result', result=result)
         return result
+
+    def list_members(self, group: Group) -> list[ProjectMember]:
+        """Return all ProjectMember rows for ``group``, ordered by username.
+
+        Uses ``select_related('user')`` so the mapper can read ``user.email``,
+        ``user.role``, etc. without N+1 queries.
+        """
+        log.debug('group_repo_list_members_called', group_id=str(group.id))
+        results = list(
+            ProjectMember.objects
+            .filter(group=group)
+            .select_related('user')
+            .order_by('user__username'),
+        )
+        log.debug(
+            'group_repo_list_members_done',
+            group_id=str(group.id),
+            count=len(results),
+        )
+        return results
+
+    def get_member(
+        self,
+        group: Group,
+        user_id: UUID,
+    ) -> ProjectMember | None:
+        """Return the ProjectMember for ``(group, user_id)`` or ``None``."""
+        log.debug(
+            'group_repo_get_member_called',
+            group_id=str(group.id),
+            user_id=str(user_id),
+        )
+        try:
+            member = (
+                ProjectMember.objects
+                .select_related('user')
+                .get(group=group, user_id=user_id)
+            )
+        except ProjectMember.DoesNotExist:
+            log.debug(
+                'group_repo_get_member_not_found',
+                group_id=str(group.id),
+                user_id=str(user_id),
+            )
+            return None
+        log.debug('group_repo_get_member_found', user_id=str(user_id))
+        return member
+
+    def add_member(self, group: Group, user_id: UUID) -> ProjectMember:
+        """Create a ProjectMember row for ``(group, user_id)``.
+
+        Raises:
+            UserNotFoundError: ``user_id`` doesn't match any existing user.
+            MemberAlreadyExistsError: ``(group, user)`` is already in the
+                ``ProjectMember`` table.
+        """
+        log.debug(
+            'group_repo_add_member_called',
+            group_id=str(group.id),
+            user_id=str(user_id),
+        )
+        user_model = get_user_model()
+        try:
+            user_obj = user_model.objects.get(pk=user_id)
+        except user_model.DoesNotExist:
+            log.debug(
+                'group_repo_add_member_user_not_found',
+                user_id=str(user_id),
+            )
+            raise UserNotFoundError from None
+        try:
+            with transaction.atomic():
+                member = ProjectMember.objects.create(
+                    group=group,
+                    user=user_obj,
+                )
+        except IntegrityError:
+            log.debug(
+                'group_repo_add_member_duplicate',
+                group_id=str(group.id),
+                user_id=str(user_id),
+            )
+            raise MemberAlreadyExistsError from None
+        log.debug(
+            'group_repo_add_member_created',
+            membership_id=str(member.id),
+        )
+        return member
+
+    def remove_member(self, group: Group, user_id: UUID) -> None:
+        """Delete the ProjectMember row for ``(group, user_id)``.
+
+        Raises:
+            MemberNotFoundError: no membership row exists for the pair.
+        """
+        log.debug(
+            'group_repo_remove_member_called',
+            group_id=str(group.id),
+            user_id=str(user_id),
+        )
+        deleted, _ = ProjectMember.objects.filter(
+            group=group,
+            user_id=user_id,
+        ).delete()
+        if deleted == 0:
+            log.debug(
+                'group_repo_remove_member_not_found',
+                group_id=str(group.id),
+                user_id=str(user_id),
+            )
+            raise MemberNotFoundError
+        log.debug(
+            'group_repo_remove_member_done',
+            group_id=str(group.id),
+            user_id=str(user_id),
+        )
