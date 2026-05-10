@@ -341,28 +341,24 @@ class MeetingRepository:
             'meeting_repo_update_entry_called',
             entry_id=str(entry.id),
         )
-        update_fields: list[str] = []
-        if promised is not None:
-            entry.promised = promised
-            update_fields.append('promised')
-        if done is not None:
-            entry.done = done
-            update_fields.append('done')
-        if will_do is not None:
-            entry.will_do = will_do
-            update_fields.append('will_do')
-        if discussion is not None:
-            entry.discussion = discussion
-            update_fields.append('discussion')
-        if notes is not None:
-            entry.notes = notes
-            update_fields.append('notes')
+        fields = {
+            'promised': promised,
+            'done': done,
+            'will_do': will_do,
+            'discussion': discussion,
+            'notes': notes,
+        }
+        update_fields = [
+            name for name, value in fields.items() if value is not None
+        ]
         if not update_fields:
             log.debug(
                 'meeting_repo_update_entry_noop',
                 entry_id=str(entry.id),
             )
             return entry
+        for name in update_fields:
+            setattr(entry, name, fields[name])
         # Bump updated_at alongside the changed fields. auto_now only
         # fires when the field is explicitly listed in update_fields
         # (Django docs).
