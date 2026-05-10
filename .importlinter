@@ -27,7 +27,6 @@ name = All apps must be independent
 type = independence
 
 modules =
-  server.apps.main
   server.apps.users
   server.apps.groups
   server.apps.meetings

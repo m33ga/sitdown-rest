@@ -21,7 +21,6 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 INSTALLED_APPS: tuple[str, ...] = (
     # Your apps go here:
-    'server.apps.main',
     'server.apps.users.apps.UsersConfig',
     'server.apps.groups.apps.GroupsConfig',
     'server.apps.meetings.apps.MeetingsConfig',

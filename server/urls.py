@@ -28,8 +28,6 @@ from dmr.routing import Router, build_404_handler, build_500_handler, path
 from health_check.views import HealthCheckView
 
 from server.apps.groups.api import urls as groups_api_urls
-from server.apps.main import urls as main_urls
-from server.apps.main.views import index
 from server.apps.meetings.api import urls as meetings_api_urls
 from server.apps.users.api import urls as users_api_urls
 
@@ -49,8 +47,6 @@ handler404 = build_404_handler(router.prefix, serializer=MsgspecSerializer)
 handler500 = build_500_handler(router.prefix, serializer=MsgspecSerializer)
 
 urlpatterns = [
-    # Apps:
-    path('main/', include(main_urls, namespace='main')),
     # Apis:
     path(router.prefix, include((router.urls, 'server'), namespace='api')),
     # OpenAPI:
@@ -100,8 +96,6 @@ urlpatterns = [
         ),
         name='humans_txt',
     ),
-    # It is a good practice to have explicit index view:
-    path('', index, name='index'),
 ]
 
 if settings.DEBUG:  # pragma: no cover
